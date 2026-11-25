@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estudio Español — Plataforma Editorial de Fluência</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Firebase Compat SDKs (App, Auth, Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Fraunces', 'serif'],
+          },
+          colors: {
+            sand: { 50: '#F9F6F0', 100: '#F2ECE1', 200: '#E5DCCB' },
+            terracotta: { 50: '#FDF3EF', 100: '#FAE3DA', 500: '#C85A32', 600: '#B04A25', 700: '#8F391A' },
+            olive: { 50: '#F2F6F3', 100: '#E1EAE3', 600: '#4A6B53', 700: '#395440' },
+            deepblue: { 50: '#F0F4F8', 100: '#D9E2EC', 700: '#2A4D7A', 800: '#1E3A5F', 900: '#132640' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #F9F6F0; color: #1E3A5F; }
+    .perspective-1000 { perspective: 1000px; }
+    .transform-style-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+    .speaking-pulse {
+      animation: pulseRing 0.9s infinite ease-in-out;
+      background-color: #C85A32 !important;
+      color: #FFFFFF !important;
+      border-color: #C85A32 !important;
+    }
+    @keyframes pulseRing {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(200, 90, 50, 0.5); }
+      50% { transform: scale(1.06); box-shadow: 0 0 0 6px rgba(200, 90, 50, 0); }
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .ws-cell { user-select: none; -webkit-user-select: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-terracotta-100 selection:text-terracotta-700">
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Modal Nuvem & Sincronização Firebase (Google Auth + Cloud Firestore) -->
+  <div id="cloud-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-deepblue-900/65 backdrop-blur-xs p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-sand-200 space-y-5 relative my-auto">
+      <button onclick="closeCloudModal()" class="absolute top-5 right-5 p-2 rounded-full bg-sand-100 hover:bg-sand-200 text-deepblue-800 transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div class="flex items-center gap-2.5">
+        <span class="px-3 py-1 rounded-full bg-deepblue-50 text-deepblue-800 text-xs font-bold uppercase tracking-wider">☁️ Sincronização na Nuvem</span>
+        <span id="cloud-modal-status-pill" class="px-2.5 py-0.5 rounded-full bg-sand-100 text-stone-600 text-xs font-bold">Desconectado</span>
+      </div>
+
+      <div>
+        <h3 class="font-serif text-2xl sm:text-3xl font-bold text-deepblue-900">Conta Google & Cloud Firestore</h3>
+        <p class="text-xs sm:text-sm text-stone-600 mt-1">Sincronize seu XP, ofensiva, lições, flashcards e caderno de erros automaticamente entre celular e computador.</p>
+      </div>
+
+      <!-- Painel de Usuário Logado -->
+      <div id="cloud-user-card" class="hidden bg-olive-50 border border-olive-600/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img id="cloud-user-avatar" src="" alt="Avatar" class="w-11 h-11 rounded-full border-2 border-olive-600 object-cover bg-white" onerror="this.style.display='none'">
+          <div>
+            <p id="cloud-user-name" class="text-sm font-bold text-deepblue-900">Usuário Conectado</p>
+            <p id="cloud-user-email" class="text-xs text-stone-600"></p>
+            <p id="cloud-last-sync-text" class="text-[11px] text-olive-700 font-semibold mt-0.5">Sincronização automática ativa</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="forceCloudSync()" class="px-3.5 py-2 rounded-xl bg-olive-600 hover:bg-olive-700 text-white text-xs font-bold transition flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sincronizar Agora
+          </button>
+          <button onclick="signOutFirebaseUser()" class="px-3.5 py-2 rounded-xl bg-white border border-sand-200 hover:bg-rose-50 hover:text-rose-700 text-deepblue-800 text-xs font-bold transition">
+            Sair
+          </button>
+        </div>
+      </div>
+
+      <!-- Painel de Login (quando Firebase está configurado mas deslogado) -->
+      <div id="cloud-login-box" class="hidden bg-sand-50 border border-sand-200 rounded-2xl p-5 text-center space-y-3">
+        <p class="text-sm font-bold text-deepblue-900">Firebase configurado! Entre com sua conta Google para sincronizar:</p>
+        <button onclick="signInWithGoogleFirebase()" class="mx-auto px-5 py-3 rounded-2xl bg-deepblue-800 hover:bg-deepblue-900 text-white font-bold text-sm shadow-sm transition flex items-center gap-2.5">
+          <span>🔐 Entrar com Google</span>
+        </button>
+      </div>
+
+      <!-- Configuração do firebaseConfig -->
+      <div class="space-y-2.5">
+        <div class="flex items-center justify-between">
+          <label for="firebase-config-textarea" class="text-xs font-bold uppercase tracking-wider text-stone-600">
+            1. Cole seu objeto <code class="text-terracotta-600">firebaseConfig</code> (JSON ou código JS direto do Firebase):
+          </label>
+          <button onclick="clearFirebaseConfig()" class="text-[11px] text-stone-400 hover:text-rose-600 underline">Limpar config</button>
+        </div>
+        <textarea id="firebase-config-textarea" rows="4" placeholder='Cole aqui o snippet const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "..." }; ou JSON puro' class="w-full p-3 rounded-2xl bg-sand-50 border border-sand-200 font-mono text-xs text-deepblue-900 focus:outline-none focus:ring-2 focus:ring-terracotta-500"></textarea>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="saveAndInitFirebaseConfig()" class="px-4 py-2.5 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white text-xs font-bold transition">
+            Salvar Configuração e Conectar
+          </button>
+        </div>
+      </div>
+
+      <!-- Guia Rápido de 3 Passos + Regras Firestore -->
+      <details class="bg-sand-50 rounded-2xl border border-sand-200 p-4 text-xs text-stone-700 space-y-2">
+        <summary class="font-bold text-deepblue-900 cursor-pointer">📖 Como configurar seu Firebase gratuito em 2 minutos</summary>
+        <ol class="list-decimal pl-5 space-y-1.5 pt-2">
+          <li>Acesse <strong>console.firebase.google.com</strong>, crie um projeto e registre um aplicativo <strong>Web (&lt;/&gt;)</strong> para copiar o <code>firebaseConfig</code> acima.</li>
+          <li>Em <strong>Authentication &gt; Sign-in method</strong>, ative o provedor <strong>Google</strong> e adicione seu domínio (ex: <code>seu-usuario.github.io</code>) em <em>Authorized domains</em>.</li>
+          <li>Em <strong>Firestore Database</strong>, crie o banco e cole esta regra de segurança:</li>
+        </ol>
+        <div class="relative mt-2">
+          <pre id="firestore-rules-snippet" class="bg-deepblue-900 text-sand-100 p-3 rounded-xl overflow-x-auto text-[11px] font-mono">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /estudio_espanhol_progresso/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}</pre>
+          <button onclick="copyFirestoreRules()" class="mt-2 px-3 py-1.5 rounded-lg bg-white border border-sand-200 hover:bg-sand-100 text-deepblue-900 font-bold text-[11px]">
+            📋 Copiar Regras do Firestore
+          </button>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Modal Backup Local (Exportar/Importar JSON & Código) -->
+  <div id="backup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-deepblue-900/65 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-sand-200 space-y-4 relative">
+      <button onclick="closeBackupModal()" class="absolute top-5 right-5 p-2 rounded-full bg-sand-100 hover:bg-sand-200 text-deepblue-800 transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <h3 class="font-serif text-2xl font-bold text-deepblue-900">Backup Manual (JSON & Código)</h3>
+      <p class="text-xs text-stone-600">Use esta opção para exportar um arquivo de segurança ou transferir seu progresso offline entre navegadores.</p>
+      <div class="grid grid-cols-2 gap-2.5">
+        <button onclick="exportProgressJSON()" class="py-2.5 px-3 rounded-xl bg-deepblue-800 hover:bg-deepblue-900 text-white text-xs font-bold">⬇️ Baixar .JSON</button>
+        <label class="py-2.5 px-3 rounded-xl bg-sand-100 hover:bg-sand-200 text-deepblue-900 text-xs font-bold text-center cursor-pointer">
+          ⬆️ Importar .JSON
+          <input type="file" accept=".json" onchange="importProgressJSON(event)" class="hidden">
+        </label>
+      </div>
+      <div class="space-y-2 pt-2 border-t border-sand-100">
+        <label class="text-[11px] font-bold uppercase text-stone-500">Código Rápido de Restauração:</label>
+        <textarea id="backup-code-box" rows="3" placeholder="Clique em Gerar Código ou cole um código salvo aqui..." class="w-full p-2.5 rounded-xl bg-sand-50 border border-sand-200 font-mono text-[11px]"></textarea>
+        <div class="flex gap-2">
+          <button onclick="copyProgressCode()" class="flex-1 py-2 rounded-xl bg-terracotta-50 text-terracotta-700 border border-terracotta-200 text-xs font-bold">📋 Gerar e Copiar Código</button>
+          <button onclick="restoreFromProgressCode()" class="flex-1 py-2 rounded-xl bg-olive-600 text-white text-xs font-bold">✅ Restaurar Código</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal "Não caia nessa!" (Falso Amigo do Dia) -->
+  <div id="daily-ff-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-deepblue-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-sand-200 space-y-5 relative">
+      <button onclick="closeDailyFFModal()" class="absolute top-5 right-5 p-2 rounded-full bg-sand-100 hover:bg-sand-200 text-deepblue-800 transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <div class="flex items-center gap-2">
+        <span class="px-3 py-1 rounded-full bg-terracotta-100 text-terracotta-700 text-xs font-bold uppercase tracking-wider">🚨 Não caia nessa!</span>
+        <span class="text-xs font-semibold text-stone-400">Falso Amigo do Dia</span>
+      </div>
+      <div>
+        <div class="flex items-center justify-between gap-3">
+          <h3 id="modal-ff-word" class="font-serif text-3xl font-bold text-deepblue-900">Embarazada</h3>
+          <button onclick="speakText(currentModalFF?.exEs || '', 1.0, this)" class="p-3 rounded-xl bg-terracotta-50 text-terracotta-600 hover:bg-terracotta-500 hover:text-white transition">
+            <i data-lucide="volume-2" class="w-5 h-5"></i>
+          </button>
+        </div>
+        <p id="modal-ff-sentence" class="mt-2 text-sm sm:text-base italic bg-sand-50 p-3.5 rounded-2xl border border-sand-200 text-deepblue-800"></p>
+      </div>
+      <div class="space-y-2.5">
+        <p class="text-xs font-bold uppercase tracking-wider text-stone-500">Desafio rápido: O que essa palavra realmente significa?</p>
+        <div id="modal-ff-options" class="grid grid-cols-1 gap-2"></div>
+      </div>
+      <div id="modal-ff-feedback" class="hidden p-4 rounded-2xl text-sm"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- BARRA DE NAVEGAÇÃO SUPERIOR FIXA (TOP HEADER + 8 ABAS)                  -->
+  <!-- ======================================================================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-sand-200 shadow-2xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <!-- Linha 1: Marca, Seletor Global de Sotaque, Teste de Áudio e Gamificação -->
+      <div class="py-3 flex flex-wrap items-center justify-between gap-3 border-b border-sand-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-terracotta-500 text-white flex items-center justify-center font-serif font-bold text-xl shadow-xs">
+            Ñ
+          </div>
+          <div>
+            <h1 class="font-serif font-bold text-xl tracking-tight text-deepblue-900 leading-none">Estudio Español</h1>
+            <p class="text-[11px] text-stone-500 font-medium mt-0.5">Plataforma Editorial para Falantes de Português</p>
+          </div>
+        </div>
+
+        <!-- Controles Globais de Áudio & Status -->
+        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div class="flex items-center bg-sand-50 border border-sand-200 rounded-xl p-1">
+            <select id="accent-select" aria-label="Seletor de Sotaque" class="bg-transparent text-xs font-bold text-deepblue-900 px-2 py-1 focus:outline-none">
+              <option value="es-ES">🇪🇸 Espanha</option>
+              <option value="es-MX">🇲🇽 México</option>
+              <option value="es-AR">🇦🇷 Argentina</option>
+            </select>
+            <button onclick="testGlobalVoice(this)" title="Testar voz em espanhol" class="px-2.5 py-1 rounded-lg bg-white border border-sand-200 hover:bg-terracotta-500 hover:text-white text-terracotta-600 text-xs font-bold flex items-center gap-1 transition">
+              <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">Testar Áudio</span>
+            </button>
+          </div>
+
+          <button onclick="openDailyFFModal()" class="px-3 py-1.5 rounded-xl bg-terracotta-50 hover:bg-terracotta-100 text-terracotta-700 border border-terracotta-200 text-xs font-bold transition">
+            🚨 Não caia nessa!
+          </button>
+
+          <!-- Botão Nuvem Firebase -->
+          <button onclick="openCloudModal()" id="header-cloud-btn" class="px-3 py-1.5 rounded-xl bg-deepblue-50 hover:bg-deepblue-100 text-deepblue-900 border border-deepblue-200 text-xs font-bold flex items-center gap-1.5 transition" title="Sincronizar progresso na nuvem com Google/Firebase">
+            <span id="header-cloud-dot" class="w-2 h-2 rounded-full bg-stone-400"></span>
+            <span id="header-cloud-label">☁️ Nuvem</span>
+          </button>
+
+          <div class="flex items-center gap-2.5 bg-deepblue-800 text-white px-3 py-1.5 rounded-xl text-xs font-bold">
+            <span>🔥 <span id="top-streak">1</span>d</span>
+            <span class="opacity-40">|</span>
+            <span class="text-amber-300">⚡ <span id="top-xp">0</span> XP</span>
+          </div>
+        </div>
+      </div>
+      <div id="modal-ff-feedback" class="hidden p-4 rounded-2xl text-sm"></div>
+    </div>
+  </div>
+
+  <!-- Modal de Backup, Exportação & Restauração de Progresso -->
+  <div id="backup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-deepblue-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-sand-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeBackupModal()" class="absolute top-5 right-5 p-2 rounded-full bg-sand-100 hover:bg-sand-200 text-deepblue-800 transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+
+      <div>
+        <span class="px-3 py-1 rounded-full bg-deepblue-50 text-deepblue-800 text-xs font-bold uppercase tracking-wider">💾 Persistência & Backup</span>
+        <h3 class="font-serif text-2xl sm:text-3xl font-bold text-deepblue-900 mt-2">Salvar & Restaurar Progresso</h3>
+        <p id="backup-mode-explanation" class="text-xs text-stone-600 mt-1 leading-relaxed"></p>
+      </div>
+
+      <!-- Opção 1: Arquivo JSON -->
+      <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200 space-y-3">
+        <p class="text-xs font-bold uppercase tracking-wider text-deepblue-900">1. Arquivo de Backup (.JSON)</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button onclick="exportProgressJSON()" class="py-3 px-4 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white text-xs font-bold flex items-center justify-center gap-2 transition">
+            <i data-lucide="download" class="w-4 h-4"></i> Exportar Progresso (.JSON)
+          </button>
+          <label class="py-3 px-4 rounded-xl bg-white hover:bg-sand-100 border border-sand-200 text-deepblue-900 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition">
+            <i data-lucide="upload" class="w-4 h-4"></i> Importar Arquivo (.JSON)
+            <input type="file" id="import-json-input" accept=".json,application/json" onchange="importProgressJSON(event)" class="hidden">
+          </label>
+        </div>
+      </div>
+
+      <!-- Opção 2: Código Base64 Rápido (Copiar / Colar) -->
+      <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200 space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold uppercase tracking-wider text-deepblue-900">2. Código de Progresso (Copiar / Colar)</p>
+          <button onclick="copyProgressCode()" class="px-3 py-1.5 rounded-lg bg-deepblue-800 hover:bg-deepblue-900 text-white text-xs font-bold flex items-center gap-1.5 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Meu Código
+          </button>
+        </div>
+        <textarea id="progress-code-textarea" rows="3" placeholder="Seu código gerado aparecerá aqui, ou cole um código salvo anteriormente para restaurar..." class="w-full p-3 rounded-xl bg-white border border-sand-200 text-xs font-mono text-deepblue-900 focus:outline-none focus:ring-2 focus:ring-terracotta-500"></textarea>
+        <button onclick="restoreFromProgressCode()" class="w-full py-2.5 px-4 rounded-xl bg-olive-600 hover:bg-olive-700 text-white text-xs font-bold transition">
+          ✓ Restaurar a partir do Código Colado
+        </button>
+      </div>
+    </div>
+  </div>
+  </header>
+
+  <!-- ======================================================================= -->
+  <!-- CONTEÚDO PRINCIPAL (8 SEÇÕES)                                           -->
+  <!-- ======================================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+
+    <!-- ===================================================================== -->
+    <!-- 01. APRENDER (4 TRILHAS & LIÇÕES INTERATIVAS)                         -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openCloudModal()" class="px-3.5 py-2 rounded-xl bg-deepblue-800 hover:bg-deepblue-900 text-white text-xs font-bold transition">
+            ☁️ Configurar Nuvem (Google)
+          </button>
+          <button onclick="openBackupModal()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-sand-100 text-deepblue-800 border border-sand-200 text-xs font-bold transition">
+            💾 Backup JSON / Código
+          </button>
+          <div class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-sand-200">
+            <label for="daily-goal-select" class="text-xs font-bold text-stone-600">Meta diária:</label>
+            <select id="daily-goal-select" onchange="updateDailyGoalTarget(this.value)" class="text-xs font-bold text-terracotta-600 bg-transparent focus:outline-none">
+              <option value="5">5 atividades</option>
+              <option value="10" selected>10 atividades</option>
+              <option value="20">20 atividades</option>
+              <option value="30">30 atividades</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 space-y-4" id="tracks-container"></div>
+        <div class="lg:col-span-7">
+          <div class="bg-white rounded-3xl border border-sand-200 shadow-sm p-6 sm:p-8 space-y-6 sticky top-32">
+            <div class="flex items-start justify-between gap-3 border-b border-sand-100 pb-4">
+              <div>
+                <span id="lesson-track-badge" class="text-xs font-bold uppercase tracking-wider text-terracotta-600">Trilha 1</span>
+                <h3 id="lesson-title" class="font-serif text-2xl sm:text-3xl font-bold text-deepblue-900 mt-0.5">Lição</h3>
+              </div>
+              <span id="lesson-status-pill" class="px-3 py-1 rounded-full text-xs font-bold bg-sand-100 text-deepblue-800 shrink-0">Em andamento</span>
+            </div>
+
+            <div class="bg-olive-50/70 border border-olive-600/20 p-4 rounded-2xl text-sm text-deepblue-900 leading-relaxed" id="lesson-intro"></div>
+
+            <div class="space-y-2.5" id="lesson-phrases-list"></div>
+
+            <div class="bg-sand-50 p-5 rounded-2xl border border-sand-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-deepblue-800">Micro-Desafio de Conclusão</span>
+                <span class="text-xs font-bold text-olive-700">+30 XP</span>
+              </div>
+              <p id="lesson-quiz-question" class="text-sm font-bold text-deepblue-900"></p>
+              <div id="lesson-quiz-options" class="grid grid-cols-1 gap-2"></div>
+              <div id="lesson-quiz-feedback" class="hidden p-3.5 rounded-xl text-xs font-semibold"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 02. VOCABULÁRIO (240+ ENTRADAS & FLASHCARDS SRS 3D)                   -->
+    <!-- ===================================================================== -->
+    <section id="tab-vocabulario" class="tab-section hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-sand-200 pb-5">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-terracotta-600 bg-terracotta-50 px-3 py-1 rounded-full">02 • Léxico Contextualizado</span>
+          <h2 class="font-serif text-3xl font-bold text-deepblue-900 mt-2">Vocabulário & Flashcards SRS 3D</h2>
+          <p class="text-sm text-stone-600 mt-1">Acervo completo com <strong id="vocab-total-counter">240+</strong> palavras e frases em 10 categorias + revisão espaçada.</p>
+        </div>
+
+        <div class="flex bg-sand-100 p-1 rounded-2xl border border-sand-200 self-start">
+          <button onclick="switchVocabView('bank')" id="vview-btn-bank" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-deepblue-900 shadow-2xs transition">
+            Explorador de Vocabulário
+          </button>
+          <button onclick="switchVocabView('flashcards')" id="vview-btn-fc" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:text-deepblue-900 transition">
+            Flashcards 3D (<span id="fc-saved-badge">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- VISÃO A: BANCO DE PALAVRAS -->
+      <div id="vocab-view-bank" class="space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 text-stone-400 absolute left-4 top-3.5"></i>
+            <input type="text" id="vocab-search-input" oninput="vocabPageLimit=36; renderVocabBank()" placeholder="Buscar palavra ou frase em espanhol ou português..." class="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-sand-200 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-500">
+          </div>
+          <div class="text-xs font-bold text-stone-500 self-center px-2">
+            Exibindo <span id="vocab-shown-count" class="text-deepblue-900">0</span> de <span id="vocab-filtered-count" class="text-deepblue-900">0</span> itens
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5" id="vocab-cat-pills"></div>
+        <div id="vocab-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div class="text-center pt-2">
+          <button id="btn-load-more-vocab" onclick="loadMoreVocab()" class="px-6 py-3 rounded-2xl bg-white border border-sand-200 hover:bg-sand-100 text-xs font-bold text-deepblue-900 shadow-2xs transition">
+            Carregar mais palavras ↓
+          </button>
+        </div>
+      </div>
+
+      <!-- VISÃO B: FLASHCARDS SRS 3D -->
+      <div id="vocab-view-flashcards" class="hidden space-y-6">
+        <div class="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <select id="fc-filter-select" onchange="filterFlashcards()" class="bg-white border border-sand-200 rounded-xl px-3.5 py-2 text-xs font-bold text-deepblue-800">
+            <option value="ALL">Todo o Acervo (240+ cartões)</option>
+            <option value="SAVED">Meus Cartões Salvos</option>
+          </select>
+          <div class="text-xs font-bold text-stone-500">
+            Cartão <span id="fc-idx-display" class="text-deepblue-900">1</span> de <span id="fc-total-display">0</span> •
+            <span id="fc-mastered-display" class="text-olive-700">0 dominados</span>
+          </div>
+        </div>
+
+        <div class="max-w-2xl mx-auto perspective-1000">
+          <div id="fc-card-3d" onclick="flipFlashcard()" class="relative w-full min-h-[340px] cursor-pointer transition-transform duration-500 transform-style-3d">
+            <!-- Frente -->
+            <div class="absolute inset-0 bg-white rounded-3xl border border-sand-200 shadow-md p-7 sm:p-10 flex flex-col justify-between backface-hidden">
+              <div class="flex items-center justify-between">
+                <span id="fc-front-cat" class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-terracotta-50 text-terracotta-600">Categoria</span>
+                <button onclick="event.stopPropagation(); speakText(fcDeck[fcIndex]?.word || '', 1.0, this)" class="p-3 rounded-full bg-sand-100 hover:bg-terracotta-500 hover:text-white text-deepblue-800 transition">
+                  <i data-lucide="volume-2" class="w-5 h-5"></i>
+                </button>
+              </div>
+              <div class="text-center my-auto py-4">
+                <h3 id="fc-front-word" class="font-serif text-3xl sm:text-5xl font-bold text-deepblue-900">Palavra</h3>
+                <p class="text-xs text-stone-400 mt-3 font-medium">Toque no cartão para virar e ver tradução + exemplo</p>
+              </div>
+              <div class="text-center text-xs font-semibold text-stone-400 flex items-center justify-center gap-1.5">
+                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Virar cartão
+              </div>
+            </div>
+
+            <!-- Verso -->
+            <div class="absolute inset-0 bg-deepblue-800 text-white rounded-3xl border border-deepblue-700 shadow-lg p-7 sm:p-10 flex flex-col justify-between backface-hidden rotate-y-180">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-sand-200">Significado em Português</span>
+                <button onclick="event.stopPropagation(); speakText(fcDeck[fcIndex]?.exEs || '', 1.0, this)" class="px-3 py-1.5 rounded-full bg-white/15 hover:bg-terracotta-500 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+                  <i data-lucide="volume-2" class="w-4 h-4"></i> Ouvir frase
+                </button>
+              </div>
+              <div class="text-center my-auto space-y-4">
+                <h4 id="fc-back-pt" class="font-serif text-3xl sm:text-4xl font-bold text-amber-300">Tradução</h4>
+                <div class="bg-white/10 rounded-2xl p-4 text-left border border-white/10">
+                  <p id="fc-back-ex-es" class="text-sm sm:text-base font-medium text-white"></p>
+                  <p id="fc-back-ex-pt" class="text-xs text-sand-200 mt-1 italic"></p>
+                </div>
+              </div>
+              <p class="text-center text-[11px] text-sand-200">Avalie sua memória abaixo</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-2xl mx-auto space-y-3">
+          <div class="grid grid-cols-3 gap-3">
+            <button onclick="rateFlashcard('hard')" class="py-3 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 font-bold text-sm transition flex flex-col items-center">
+              <span>Difícil</span>
+              <span class="text-[11px] font-normal">Rever logo</span>
+            </button>
+            <button onclick="rateFlashcard('good')" class="py-3 px-4 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 font-bold text-sm transition flex flex-col items-center">
+              <span>Bom</span>
+              <span class="text-[11px] font-normal">+10 XP</span>
+            </button>
+            <button onclick="rateFlashcard('easy')" class="py-3 px-4 rounded-2xl bg-olive-50 hover:bg-olive-100 border border-olive-600/30 text-olive-700 font-bold text-sm transition flex flex-col items-center">
+              <span>Fácil</span>
+              <span class="text-[11px] font-normal">Dominado (+15 XP)</span>
+            </button>
+          </div>
+          <div class="flex justify-between items-center text-xs font-semibold text-stone-600">
+            <button onclick="prevFC()" class="px-3 py-2 rounded-xl hover:bg-sand-100 flex items-center gap-1"><i data-lucide="arrow-left" class="w-4 h-4"></i> Anterior</button>
+            <button onclick="shuffleFC()" class="px-3 py-2 rounded-xl hover:bg-sand-100 flex items-center gap-1"><i data-lucide="shuffle" class="w-3.5 h-3.5"></i> Embaralhar</button>
+            <button onclick="nextFC()" class="px-3 py-2 rounded-xl hover:bg-sand-100 flex items-center gap-1">Próximo <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 03. GRAMÁTICA (10 CATEGORIAS EM 3 ETAPAS + CONJUGADOR 35 IRREGULARES)  -->
+    <!-- ===================================================================== -->
+    <section id="tab-gramatica" class="tab-section hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-sand-200 pb-5">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-deepblue-700 bg-deepblue-50 px-3 py-1 rounded-full">03 • Gramática Prática</span>
+          <h2 class="font-serif text-3xl font-bold text-deepblue-900 mt-2">Gramática & Conjugador de Verbos</h2>
+          <p class="text-sm text-stone-600 mt-1">10 categorias em 3 etapas + conjugador com 35 verbos irregulares e conjugação automática regular.</p>
+        </div>
+
+        <div class="flex bg-sand-100 p-1 rounded-2xl border border-sand-200 self-start">
+          <button onclick="switchGrammarMode('topics')" id="gmode-btn-topics" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-deepblue-900 shadow-2xs transition">
+            10 Tópicos (3 Etapas)
+          </button>
+          <button onclick="switchGrammarMode('conjugator')" id="gmode-btn-conj" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:text-deepblue-900 transition">
+            Conjugador de Verbos
+          </button>
+        </div>
+      </div>
+
+      <!-- MODO A: 10 CATEGORIAS EM 3 ETAPAS -->
+      <div id="grammar-mode-topics" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-4 space-y-1.5" id="grammar-topics-list"></div>
+
+        <div class="lg:col-span-8 bg-white rounded-3xl border border-sand-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div class="border-b border-sand-100 pb-4">
+            <span id="gt-badge" class="text-xs font-bold uppercase tracking-wider text-terracotta-600">Categoria 1 de 10</span>
+            <h3 id="gt-title" class="font-serif text-2xl sm:text-3xl font-bold text-deepblue-900 mt-1">Artigos</h3>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 bg-sand-50 p-1.5 rounded-2xl border border-sand-200">
+            <button onclick="setGrammarStep(1)" id="gstep-btn-1" class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold bg-deepblue-800 text-white transition">
+              1. Entenda a regra
+            </button>
+            <button onclick="setGrammarStep(2)" id="gstep-btn-2" class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:bg-white transition">
+              2. Veja exemplos
+            </button>
+            <button onclick="setGrammarStep(3)" id="gstep-btn-3" class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:bg-white transition">
+              3. Faça exercícios (5)
+            </button>
+          </div>
+
+          <div id="grammar-step-1" class="space-y-4 text-sm sm:text-base text-stone-700 leading-relaxed"></div>
+          <div id="grammar-step-2" class="hidden space-y-3"></div>
+          <div id="grammar-step-3" class="hidden space-y-4"></div>
+        </div>
+      </div>
+
+      <!-- MODO B: CONJUGADOR DE VERBOS -->
+      <div id="grammar-mode-conjugator" class="hidden space-y-6">
+        <div class="bg-white rounded-3xl border border-sand-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div class="max-w-3xl">
+            <label for="conj-search-input" class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
+              Digite qualquer verbo em espanhol (35 irregulares cadastrados + qualquer verbo regular -ar, -er, -ir):
+            </label>
+            <div class="flex flex-col sm:flex-row gap-2.5">
+              <input type="text" id="conj-search-input" value="hablar" placeholder="Ex: hablar, tener, ser, estar, ir, poder, querer, decir, venir, traer, conducir..." class="flex-1 px-4 py-3 rounded-2xl border border-sand-200 text-base font-bold text-deepblue-900 focus:outline-none focus:ring-2 focus:ring-terracotta-500">
+              <button onclick="runConjugator()" class="px-6 py-3 rounded-2xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-bold text-sm transition flex items-center justify-center gap-2">
+                <i data-lucide="search" class="w-4 h-4"></i> Conjugar Verbo
+              </button>
+            </div>
+            <div class="flex flex-wrap gap-1.5 mt-3" id="conj-quick-pills"></div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-sand-50 p-4 rounded-2xl border border-sand-200">
+            <div>
+              <h3 id="conj-verb-title" class="font-serif text-2xl font-bold text-deepblue-900 uppercase">HABLAR</h3>
+              <p id="conj-verb-meaning" class="text-xs text-stone-600 font-medium mt-0.5"></p>
+            </div>
+            <button onclick="speakText(currentConjExample, 1.0, this)" class="px-4 py-2 rounded-xl bg-deepblue-800 text-white text-xs font-bold flex items-center gap-2 hover:bg-deepblue-900 transition">
+              <i data-lucide="volume-2" class="w-4 h-4"></i> Ouvir frase de exemplo
+            </button>
+          </div>
+
+          <div id="conj-tables-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 04. JOGOS (7 JOGOS INTERATIVOS COMPLETOS)                             -->
+    <!-- ===================================================================== -->
+    <section id="tab-jogos" class="tab-section hidden space-y-6">
+      <div class="border-b border-sand-200 pb-5">
+        <span class="text-xs font-bold uppercase tracking-wider text-terracotta-600 bg-terracotta-50 px-3 py-1 rounded-full">04 • Treino Lúdico</span>
+        <h2 class="font-serif text-3xl font-bold text-deepblue-900 mt-2">7 Jogos Educativos</h2>
+        <p class="text-sm text-stone-600 mt-1">Centenas de combinações, frases e desafios para automatizar seu vocabulário e gramática.</p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        <button onclick="selectGame(1)" data-game-btn="1" class="game-tab-btn p-3 rounded-2xl border border-terracotta-500 bg-terracotta-50 text-terracotta-800 text-left transition">
+          <span class="text-lg block mb-1">🔗</span>
+          <p class="text-xs font-bold leading-tight">1. Combine Palavras</p>
+        </button>
+        <button onclick="selectGame(2)" data-game-btn="2" class="game-tab-btn p-3 rounded-2xl border border-sand-200 bg-white hover:bg-sand-50 text-deepblue-800 text-left transition">
+          <span class="text-lg block mb-1">🔤</span>
+          <p class="text-xs font-bold leading-tight">2. Palavra Embaralhada</p>
+        </button>
+        <button onclick="selectGame(3)" data-game-btn="3" class="game-tab-btn p-3 rounded-2xl border border-sand-200 bg-white hover:bg-sand-50 text-deepblue-800 text-left transition">
+          <span class="text-lg block mb-1">⚡</span>
+          <p class="text-xs font-bold leading-tight">3. Quiz Relâmpago</p>
+        </button>
+        <button onclick="selectGame(4)" data-game-btn="4" class="game-tab-btn p-3 rounded-2xl border border-sand-200 bg-white hover:bg-sand-50 text-deepblue-800 text-left transition">
+          <span class="text-lg block mb-1">🔍</span>
+          <p class="text-xs font-bold leading-tight">4. Caça-Palavras</p>
+        </button>
+        <button onclick="selectGame(5)" data-game-btn="5" class="game-tab-btn p-3 rounded-2xl border border-sand-200 bg-white hover:bg-sand-50 text-deepblue-800 text-left transition">
+          <span class="text-lg block mb-1">🧩</span>
+          <p class="text-xs font-bold leading-tight">5. Monte a Frase</p>
+        </button>
+        <button onclick="selectGame(6)" data-game-btn="6" class="game-tab-btn p-3 rounded-2xl border border-sand-200 bg-white hover:bg-sand-50 text-deepblue-800 text-left transition">
+          <span class="text-lg block mb-1">🎧</span>
+          <p class="text-xs font-bold leading-tight">6. O que você ouviu?</p>
+        </button>
+        <button onclick="selectGame(7)" data-game-btn="7" class="game-tab-btn p-3 rounded-2xl border border-sand-200 bg-white hover:bg-sand-50 text-deepblue-800 text-left transition">
+          <span class="text-lg block mb-1">🕵️</span>
+          <p class="text-xs font-bold leading-tight">7. Encontre o Erro</p>
+        </button>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-sand-200 shadow-sm p-6 sm:p-8 max-w-3xl mx-auto">
+        <!-- JOGO 1 -->
+        <div id="game-panel-1" class="game-panel space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-serif text-2xl font-bold text-deepblue-900">1. Combine as Palavras</h3>
+              <p class="text-xs text-stone-500">Clique na palavra em espanhol e depois na tradução correspondente.</p>
+            </div>
+            <button onclick="initGame1()" class="px-3.5 py-2 rounded-xl bg-sand-100 hover:bg-sand-200 text-xs font-bold text-deepblue-800">Nova Rodada</button>
+          </div>
+          <div class="grid grid-cols-2 gap-4 pt-2">
+            <div id="g1-es-col" class="space-y-2.5"></div>
+            <div id="g1-pt-col" class="space-y-2.5"></div>
+          </div>
+        </div>
+
+        <!-- JOGO 2 -->
+        <div id="game-panel-2" class="game-panel hidden space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-serif text-2xl font-bold text-deepblue-900">2. Palavra Embaralhada</h3>
+              <p class="text-xs text-stone-500">Organize as letras para formar a palavra em espanhol.</p>
+            </div>
+            <span class="text-xs font-bold bg-olive-50 text-olive-700 px-3 py-1.5 rounded-xl">Acertos: <span id="g2-score">0</span></span>
+          </div>
+          <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200 text-center">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-400">Dica em Português</span>
+            <p id="g2-hint" class="text-xl font-bold text-deepblue-900 mt-0.5"></p>
+          </div>
+          <div id="g2-answer-slots" class="min-h-[56px] flex flex-wrap justify-center gap-2 p-3 rounded-2xl border-2 border-dashed border-sand-200 bg-sand-50/50"></div>
+          <div id="g2-letter-pool" class="flex flex-wrap justify-center gap-2"></div>
+          <div id="g2-feedback" class="hidden p-3.5 rounded-xl text-sm text-center font-semibold"></div>
+          <div class="flex justify-center gap-3">
+            <button onclick="clearGame2Slots()" class="px-4 py-2.5 rounded-xl bg-sand-100 text-xs font-bold text-deepblue-800">Limpar Letras</button>
+            <button onclick="initGame2()" class="px-4 py-2.5 rounded-xl bg-deepblue-800 text-white text-xs font-bold">Próxima Palavra</button>
+          </div>
+        </div>
+
+        <!-- JOGO 3 -->
+        <div id="game-panel-3" class="game-panel hidden space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-serif text-2xl font-bold text-deepblue-900">3. Quiz Relâmpago (30s)</h3>
+              <p class="text-xs text-stone-500">Velocidade + precisão com multiplicador de sequência!</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1.5 rounded-xl bg-terracotta-50 text-terracotta-700 font-bold text-sm">⏱️ <span id="g3-timer">30</span>s</span>
+              <span class="px-3 py-1.5 rounded-xl bg-deepblue-800 text-white font-bold text-sm">Pts: <span id="g3-score">0</span></span>
+            </div>
+          </div>
+          <div id="g3-start-screen" class="py-10 text-center space-y-4">
+            <p class="text-sm text-stone-600 max-w-md mx-auto">Responda o máximo de perguntas em 30 segundos. Acertos consecutivos ativam bônus de velocidade!</p>
+            <button onclick="startGame3()" class="px-6 py-3.5 rounded-2xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-bold text-sm shadow-sm transition">
+              ⚡ Iniciar Desafio de 30s
+            </button>
+          </div>
+          <div id="g3-play-screen" class="hidden space-y-4">
+            <h4 id="g3-question" class="text-lg sm:text-xl font-bold text-deepblue-900 bg-sand-50 p-4 rounded-2xl border border-sand-200"></h4>
+            <div id="g3-options" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+          </div>
+        </div>
+
+        <!-- JOGO 4 -->
+        <div id="game-panel-4" class="game-panel hidden space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="font-serif text-2xl font-bold text-deepblue-900">4. Caça-Palavras em Espanhol</h3>
+              <p class="text-xs text-stone-500">Clique na <strong>primeira letra</strong> e depois na <strong>última letra</strong> da palavra escondida.</p>
+            </div>
+            <button onclick="initGame4()" class="px-3.5 py-2 rounded-xl bg-sand-100 hover:bg-sand-200 text-xs font-bold text-deepblue-800 self-start">Novo Tabuleiro</button>
+          </div>
+          <div class="flex flex-wrap gap-2" id="g4-word-list"></div>
+          <div class="overflow-x-auto flex justify-center">
+            <div id="g4-grid" class="grid grid-cols-10 gap-1 bg-sand-100 p-2 rounded-2xl border border-sand-200 w-fit"></div>
+          </div>
+        </div>
+
+        <!-- JOGO 5 -->
+        <div id="game-panel-5" class="game-panel hidden space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-serif text-2xl font-bold text-deepblue-900">5. Monte a Frase (80+ Frases)</h3>
+              <p class="text-xs text-stone-500">Ordene as palavras para traduzir corretamente.</p>
+            </div>
+            <button onclick="speakText(G5_SENTENCES[g5Idx].es, 1.0, this)" class="px-3 py-1.5 rounded-xl bg-terracotta-50 text-terracotta-700 text-xs font-bold flex items-center gap-1">
+              <i data-lucide="volume-2" class="w-4 h-4"></i> Ouvir Dica
+            </button>
+          </div>
+          <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200">
+            <span class="text-[11px] font-bold uppercase text-stone-400">Traduza para o espanhol:</span>
+            <p id="g5-pt-prompt" class="text-lg font-bold text-deepblue-900 mt-0.5"></p>
+          </div>
+          <div id="g5-selected" class="min-h-[60px] p-3 rounded-2xl border-2 border-dashed border-sand-200 flex flex-wrap gap-2 items-center"></div>
+          <div id="g5-bank" class="flex flex-wrap gap-2"></div>
+          <div id="g5-feedback" class="hidden p-3.5 rounded-xl text-sm"></div>
+          <div class="flex gap-3">
+            <button onclick="checkGame5()" class="flex-1 py-3 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-bold text-sm">Verificar Ordem</button>
+            <button onclick="nextGame5()" class="px-5 py-3 rounded-xl bg-sand-100 hover:bg-sand-200 text-deepblue-800 font-bold text-sm">Próxima</button>
+          </div>
+        </div>
+
+        <!-- JOGO 6 -->
+        <div id="game-panel-6" class="game-panel hidden space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-serif text-2xl font-bold text-deepblue-900">6. O que você ouviu?</h3>
+              <p class="text-xs text-stone-500">Escute o áudio em velocidade normal ou lenta e escolha o significado.</p>
+            </div>
+            <span class="text-xs font-bold bg-deepblue-50 text-deepblue-800 px-3 py-1.5 rounded-xl">Acertos: <span id="g6-score">0</span></span>
+          </div>
+          <div class="bg-deepblue-800 text-white p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p class="font-bold text-base">Reproduzir Áudio em Espanhol</p>
+              <p class="text-xs text-sand-200">Treine seu ouvido para diferentes ritmos de fala.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="speakText(G6_LISTENING[g6Idx].es, 1.0, this)" class="px-4 py-2.5 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white text-xs font-bold flex items-center gap-1.5">
+                <i data-lucide="play" class="w-4 h-4"></i> Normal (1.0x)
+              </button>
+              <button onclick="speakText(G6_LISTENING[g6Idx].es, 0.7, this)" class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold flex items-center gap-1.5">
+                <i data-lucide="snail" class="w-4 h-4"></i> Lento (0.7x)
+              </button>
+            </div>
+          </div>
+          <div id="g6-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          <div id="g6-feedback" class="hidden p-4 rounded-xl text-sm"></div>
+          <button onclick="nextGame6()" class="w-full py-3 rounded-xl bg-deepblue-800 text-white text-sm font-bold">Próximo Áudio</button>
+        </div>
+
+        <!-- JOGO 7 -->
+        <div id="game-panel-7" class="game-panel hidden space-y-5">
+          <div>
+            <h3 class="font-serif text-2xl font-bold text-deepblue-900">7. Encontre o Erro (55+ Frases Anti-Portunhol)</h3>
+            <p class="text-xs text-stone-500">Identifique o erro típico de brasileiros e escolha a forma natural em espanhol.</p>
+          </div>
+          <div class="bg-rose-50/70 border border-rose-200 p-5 rounded-2xl">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-rose-700">Frase com erro:</span>
+            <p id="g7-wrong-sentence" class="font-serif text-2xl font-bold text-rose-950 mt-1"></p>
+            <p id="g7-context-pt" class="text-xs text-stone-600 mt-1 italic"></p>
+          </div>
+          <div class="space-y-2">
+            <p class="text-xs font-bold uppercase text-stone-500">Escolha a correção adequada:</p>
+            <div id="g7-options" class="grid grid-cols-1 gap-2.5"></div>
+          </div>
+          <div id="g7-feedback" class="hidden p-4 rounded-xl text-sm"></div>
+          <button onclick="nextGame7()" class="w-full py-3 rounded-xl bg-deepblue-800 text-white text-sm font-bold">Próxima Frase</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 05. CONVERSAÇÃO (10 CENÁRIOS COTIDIANOS)                              -->
+    <!-- ===================================================================== -->
+    <section id="tab-conversacao" class="tab-section hidden space-y-6">
+      <div class="border-b border-sand-200 pb-5">
+        <span class="text-xs font-bold uppercase tracking-wider text-olive-700 bg-olive-100 px-3 py-1 rounded-full">05 • Simulação Real</span>
+        <h2 class="font-serif text-3xl font-bold text-deepblue-900 mt-2">Conversação Cotidiana (10 Cenários)</h2>
+        <p class="text-sm text-stone-600 mt-1">Conduza diálogos completos em situações reais de viagem, trabalho e dia a dia.</p>
+      </div>
+
+      <div class="flex flex-wrap gap-2" id="conv-scenarios-bar"></div>
+
+      <div class="max-w-3xl mx-auto bg-white rounded-3xl border border-sand-200 shadow-sm overflow-hidden">
+        <div class="bg-deepblue-800 text-white px-6 py-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 id="conv-scenario-title" class="font-serif font-bold text-lg">Cenário</h3>
+            <p id="conv-scenario-desc" class="text-xs text-sand-200"></p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleConvTranslation()" id="btn-toggle-conv-pt" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold transition">
+              👁️ Mostrar Tradução
+            </button>
+            <button onclick="restartConversation()" class="px-3 py-1.5 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-xs font-bold transition">
+              Reiniciar
+            </button>
+          </div>
+        </div>
+
+        <div id="conv-messages-box" class="p-6 space-y-4 max-h-[380px] overflow-y-auto bg-sand-50/40"></div>
+        <div id="conv-choices-box" class="p-5 bg-white border-t border-sand-200 space-y-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 06. PRONÚNCIA (6 SONS CRÍTICOS & MICROFONE SPEECH RECOGNITION)        -->
+    <!-- ===================================================================== -->
+    <section id="tab-pronuncia" class="tab-section hidden space-y-6">
+      <div class="border-b border-sand-200 pb-5">
+        <span class="text-xs font-bold uppercase tracking-wider text-terracotta-600 bg-terracotta-50 px-3 py-1 rounded-full">06 • Fonética & Fala</span>
+        <h2 class="font-serif text-3xl font-bold text-deepblue-900 mt-2">Pronúncia & Prática Oral</h2>
+        <p class="text-sm text-stone-600 mt-1">Domine os 6 sons que diferenciam o espanhol do português e teste sua fala no microfone.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="phonetics-cards-grid"></div>
+
+      <div class="max-w-3xl mx-auto bg-white rounded-3xl border border-sand-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sand-100 pb-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-olive-700">Laboratório de Fala Ativa</span>
+            <h3 class="font-serif text-2xl font-bold text-deepblue-900">Trava-línguas & Reconhecimento de Voz</h3>
+          </div>
+          <select id="pron-phrase-select" onchange="selectPronunciationPhrase()" class="bg-sand-50 border border-sand-200 rounded-xl px-3 py-2 text-xs font-bold text-deepblue-900"></select>
+        </div>
+
+        <div class="bg-sand-50 p-5 rounded-2xl border border-sand-200 space-y-3 text-center">
+          <p id="pron-target-phrase" class="font-serif text-2xl sm:text-3xl font-bold text-deepblue-900"></p>
+          <p id="pron-target-pt" class="text-xs text-stone-500 italic"></p>
+          <div class="flex justify-center gap-2.5 pt-2">
+            <button onclick="speakText(PRONUNCIATION_PHRASES[Number(document.getElementById('pron-phrase-select').value||0)].es, 1.0, this)" class="px-4 py-2 rounded-xl bg-deepblue-800 text-white text-xs font-bold flex items-center gap-1.5 hover:bg-deepblue-900">
+              <i data-lucide="volume-2" class="w-4 h-4"></i> Ouvir Normal (1.0x)
+            </button>
+            <button onclick="speakText(PRONUNCIATION_PHRASES[Number(document.getElementById('pron-phrase-select').value||0)].es, 0.7, this)" class="px-4 py-2 rounded-xl bg-white border border-sand-200 text-deepblue-800 text-xs font-bold flex items-center gap-1.5 hover:bg-sand-100">
+              <i data-lucide="snail" class="w-4 h-4"></i> Ouvir Lento (0.7x)
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center space-y-3">
+          <button id="btn-mic-record" onclick="startSpeechRecognition()" class="px-6 py-4 rounded-2xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-bold text-sm shadow-md transition flex items-center gap-2.5">
+            <i data-lucide="mic" class="w-5 h-5"></i>
+            <span id="mic-btn-label">Falar Agora no Microfone</span>
+          </button>
+          <p id="mic-status-text" class="text-xs text-stone-500 text-center">Clique acima e leia a frase em voz alta em espanhol.</p>
+        </div>
+
+        <div id="pron-result-box" class="hidden p-5 rounded-2xl border space-y-2 text-center"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 07. FALSOS AMIGOS (65+ PARES + "NÃO CAIA NESSA!")                     -->
+    <!-- ===================================================================== -->
+    <section id="tab-falsos-amigos" class="tab-section hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-sand-200 pb-5">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-terracotta-600 bg-terracotta-50 px-3 py-1 rounded-full">07 • Dicionário Anti-Armadilhas</span>
+          <h2 class="font-serif text-3xl font-bold text-deepblue-900 mt-2">Falsos Amigos (<span id="ff-count-badge">65+</span> Pares)</h2>
+          <p class="text-sm text-stone-600 mt-1">Evite gafes reais dominando as palavras que parecem português, mas têm outro sentido.</p>
+        </div>
+
+        <button onclick="openDailyFFModal()" class="px-5 py-3 rounded-2xl bg-terracotta-500 hover:bg-terracotta-600 text-white font-bold text-sm shadow-sm transition flex items-center gap-2 self-start">
+          <span>🚨 Não caia nessa!</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 text-stone-400 absolute left-4 top-3.5"></i>
+          <input type="text" id="ff-search-input" oninput="renderFalseFriendsTable()" placeholder="Pesquisar falso cognato (ex: embarazada, vaso, apellido, oficina, rato, salsa)..." class="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-sand-200 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-500">
+        </div>
+        <button onclick="startMiniFFQuiz()" class="px-5 py-3 rounded-2xl bg-deepblue-800 hover:bg-deepblue-900 text-white text-xs sm:text-sm font-bold transition">
+          🎯 Teste Rápido de Falsos Amigos
+        </button>
+      </div>
+
+      <div id="ff-inline-quiz-box" class="hidden max-w-2xl mx-auto bg-white p-6 rounded-3xl border-2 border-terracotta-500 shadow-md space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-terracotta-600">Desafio Rápido</span>
+          <button onclick="document.getElementById('ff-inline-quiz-box').classList.add('hidden')" class="text-xs text-stone-400 hover:text-deepblue-900 font-bold">Fechar ✕</button>
+        </div>
+        <h4 id="ff-iq-question" class="text-lg font-bold text-deepblue-900"></h4>
+        <div id="ff-iq-options" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+        <div id="ff-iq-feedback" class="hidden p-3.5 rounded-xl text-xs font-medium"></div>
+        <button onclick="nextInlineFFQuiz()" class="w-full py-2.5 rounded-xl bg-deepblue-800 text-white text-xs font-bold">Próxima Pergunta</button>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-sand-200 shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-sand-100/80 border-b border-sand-200 text-[11px] font-bold uppercase tracking-wider text-stone-600">
+                <th class="py-3.5 px-4">Espanhol</th>
+                <th class="py-3.5 px-4 text-olive-700">✓ Significado Correto</th>
+                <th class="py-3.5 px-4 text-rose-700">✕ Parece Significar</th>
+                <th class="py-3.5 px-4">Exemplo Contextualizado</th>
+              </tr>
+            </thead>
+            <tbody id="ff-dictionary-tbody" class="divide-y divide-sand-100 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 08. MEU PROGRESSO (ESTATÍSTICAS, MAPA DE CALOR & CADERNO DE ERROS)    -->
+    <!-- ===================================================================== -->
+    <section id="tab-progresso" class="tab-section hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-sand-200 pb-5">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-deepblue-700 bg-deepblue-50 px-3 py-1 rounded-full">08 • Evolução & Revisão</span>
+          <h2 class="font-serif text-3xl font-bold text-deepblue-900 mt-2">Meu Progresso</h2>
+          <p class="text-sm text-stone-600 mt-1">Acompanhe suas métricas diárias, histórico de atividades e o Caderno de Erros Automático.</p>
+        </div>
+
+        <div class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-sand-200">
+          <label for="daily-goal-select" class="text-xs font-bold text-stone-600">Meta diária:</label>
+          <select id="daily-goal-select" onchange="updateDailyGoalTarget(this.value)" class="text-xs font-bold text-terracotta-600 bg-transparent focus:outline-none">
+            <option value="5">5 atividades</option>
+            <option value="10" selected>10 atividades</option>
+            <option value="20">20 atividades</option>
+            <option value="30">30 atividades</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Painel Dedicado de Backup & Sincronização Manual -->
+      <div class="bg-white p-5 sm:p-6 rounded-3xl border border-sand-200 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-terracotta-600">Segurança dos Seus Dados</span>
+            <span id="prog-storage-pill" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-olive-100 text-olive-700">Armazenamento Ativo</span>
+          </div>
+          <h3 class="font-serif font-bold text-lg text-deepblue-900">Backup, Exportação e Código de Restauração</h3>
+          <p class="text-xs text-stone-500">Se você usa o site dentro de uma pré-visualização temporária ou quer levar seu progresso para outro navegador, exporte seu backup abaixo.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <button onclick="exportProgressJSON()" class="px-4 py-2.5 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white text-xs font-bold flex items-center gap-1.5 transition">
+            <i data-lucide="download" class="w-4 h-4"></i> Exportar .JSON
+          </button>
+          <label class="px-4 py-2.5 rounded-xl bg-sand-100 hover:bg-sand-200 text-deepblue-900 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition">
+            <i data-lucide="upload" class="w-4 h-4"></i> Importar .JSON
+            <input type="file" accept=".json,application/json" onchange="importProgressJSON(event)" class="hidden">
+          </label>
+          <button onclick="openBackupModal()" class="px-4 py-2.5 rounded-xl bg-deepblue-800 hover:bg-deepblue-900 text-white text-xs font-bold flex items-center gap-1.5 transition">
+            <i data-lucide="key-round" class="w-4 h-4"></i> Código Copiar/Colar
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white p-6 rounded-3xl border border-sand-200 shadow-2xs space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-serif font-bold text-lg text-deepblue-900">Mapa de Calor (28 dias)</h3>
+              <p class="text-xs text-stone-500">Intensidade diária de estudos salva localmente.</p>
+            </div>
+            <button onclick="resetAllAppData()" class="text-xs text-stone-400 hover:text-rose-600 underline">Resetar dados</button>
+          </div>
+          <div id="prog-heatmap" class="grid grid-cols-7 sm:grid-cols-14 gap-2 py-2"></div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-sand-200 shadow-2xs space-y-3">
+          <h3 class="font-serif font-bold text-lg text-deepblue-900">Histórico Recente</h3>
+          <div id="prog-history-list" class="space-y-2 max-h-48 overflow-y-auto text-xs"></div>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-3xl border border-sand-200 shadow-2xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="font-serif font-bold text-xl text-deepblue-900 flex items-center gap-2">
+              <i data-lucide="bookmark-check" class="w-5 h-5 text-terracotta-500"></i>
+              Caderno de Erros Automático
+            </h3>
+            <p class="text-xs text-stone-500">Tudo o que você errar nos jogos, gramática ou falsos amigos fica salvo aqui para revisão.</p>
+          </div>
+          <button onclick="clearErrorNotebook()" id="btn-clear-err-nb" class="hidden px-3 py-1.5 rounded-xl border border-sand-200 text-xs font-bold text-stone-500 hover:text-rose-600">
+            Limpar tudo
+          </button>
+        </div>
+
+        <div id="prog-error-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================= -->
+  <!-- SCRIPT COMPLETO DA APLICAÇÃO                                            -->
+  <!-- ======================================================================= -->
+  <script>
+    /* =========================================================================
+       3. ESTADO GLOBAL, PERSISTÊNCIA TRIPLA & SINCRONIZAÇÃO FIREBASE NUVEM
+       ========================================================================= */
+    const STORAGE_KEY = 'estudio_espanol_v3_completo';
+    const FB_CONFIG_KEY = 'estudio_espanol_fb_config_v1';
+
+    let fbApp = null;
+    let fbAuth = null;
+    let fbDb = null;
+    let currentCloudUser = null;
+    let cloudSyncDebounce = null;
+    let lastCloudSyncTime = null;
+
+    let state = {
+      xp: 0,
+      streak: 1,
+      lastDate: new Date().toISOString().split('T')[0],
+      todayCount: 0,
+      dailyTarget: 10,
+      accent: 'es-ES',
+      activityMap: {},
+      completedLessons: [],
+      savedVocabIds: ['v1', 'v25', 'v49', 'v73'],
+      fcStatus: {},
+      errorNotebook: [],
+      historyLog: [],
+      updatedAt: 0
+    };
+
+    function readWindowNameBackup() {
+      try {
+        if (window.name && window.name.startsWith('ESTUDIO_ES_BACKUP:')) {
+          return JSON.parse(window.name.slice('ESTUDIO_ES_BACKUP:'.length));
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function writeWindowNameBackup(dataObj) {
+      try {
+        window.name = 'ESTUDIO_ES_BACKUP:' + JSON.stringify(dataObj);
+      } catch (e) {}
+    }
+
+    function loadState() {
+      try {
+        let parsed = null;
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) parsed = JSON.parse(raw);
+        } catch (storageErr) {
+          parsed = readWindowNameBackup();
+        }
+        if (!parsed) parsed = readWindowNameBackup();
+
+        if (parsed) {
+          state = { ...state, ...parsed };
+          const today = new Date().toISOString().split('T')[0];
+          if (state.lastDate !== today) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yStr = yesterday.toISOString().split('T')[0];
+            state.streak = (state.lastDate === yStr) ? state.streak + 1 : 1;
+            state.lastDate = today;
+            state.todayCount = 0;
+            saveState(false);
+          }
+        } else {
+          state.activityMap[state.lastDate] = 1;
+          saveState(false);
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function saveState(triggerCloud = true) {
+      state.updatedAt = Date.now();
+      writeWindowNameBackup(state);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+
+      refreshAllCounters();
+
+      if (triggerCloud && currentCloudUser && fbDb) {
+        clearTimeout(cloudSyncDebounce);
+        updateCloudHeaderUI('syncing');
+        cloudSyncDebounce = setTimeout(() => {
+          pushStateToFirestore();
+        }, 1200);
+      }
+    }
+
+    /* ---------------- FIREBASE AUTH & FIRESTORE ---------------- */
+    function parseFirebaseConfigInput(rawText) {
+      const trimmed = (rawText || '').trim();
+      if (!trimmed) return null;
+      // 1) Tenta JSON direto
+      try {
+        const direct = JSON.parse(trimmed);
+        if (direct && direct.apiKey && direct.projectId) return direct;
+      } catch (e) {}
+
+      // 2) Extrai bloco { ... } de snippet JS (const firebaseConfig = { ... };)
+      const firstBrace = trimmed.indexOf('{');
+      const lastBrace = trimmed.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        const objLiteral = trimmed.slice(firstBrace, lastBrace + 1);
+        try {
+          // Converte chaves sem aspas para JSON válido
+          const jsonified = objLiteral
+            .replace(/\/\/.*$/gm, '')
+            .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
+            .replace(/'/g, '"')
+            .replace(/,\s*}/g, '}');
+          const parsed = JSON.parse(jsonified);
+          if (parsed && parsed.apiKey && parsed.projectId) return parsed;
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    function initFirebaseFromStoredConfig() {
+      if (typeof firebase === 'undefined') return;
+      let cfgStr = '';
+      try { cfgStr = localStorage.getItem(FB_CONFIG_KEY) || ''; } catch (e) {}
+      if (!cfgStr) {
+        updateCloudHeaderUI('unconfigured');
+        return;
+      }
+      const cfg = parseFirebaseConfigInput(cfgStr);
+      if (!cfg) {
+        updateCloudHeaderUI('unconfigured');
+        return;
+      }
+
+      const ta = document.getElementById('firebase-config-textarea');
+      if (ta && !ta.value) ta.value = JSON.stringify(cfg, null, 2);
+
+      try {
+        fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
+        fbAuth = firebase.auth();
+        fbDb = firebase.firestore();
+        updateCloudHeaderUI('ready');
+
+        fbAuth.onAuthStateChanged(async (user) => {
+          currentCloudUser = user;
+          if (user) {
+            updateCloudHeaderUI('connected');
+            await pullAndMergeFromFirestore();
+          } else {
+            updateCloudHeaderUI('ready');
+          }
+          renderCloudModalState();
+        });
+      } catch (err) {
+        console.error('Erro ao inicializar Firebase:', err);
+        updateCloudHeaderUI('error');
+      }
+    }
+
+    function saveAndInitFirebaseConfig() {
+      const raw = document.getElementById('firebase-config-textarea').value;
+      const cfg = parseFirebaseConfigInput(raw);
+      if (!cfg) {
+        showToast('Configuração inválida. Verifique se apiKey e projectId estão presentes.', 'warning');
+        return;
+      }
+      try {
+        localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(cfg));
+      } catch (e) {}
+      showToast('Configuração Firebase salva! Agora entre com sua conta Google.', 'success');
+      initFirebaseFromStoredConfig();
+      renderCloudModalState();
+    }
+
+    function clearFirebaseConfig() {
+      try { localStorage.removeItem(FB_CONFIG_KEY); } catch (e) {}
+      document.getElementById('firebase-config-textarea').value = '';
+      if (fbAuth && currentCloudUser) fbAuth.signOut();
+      fbApp = null; fbAuth = null; fbDb = null; currentCloudUser = null;
+      updateCloudHeaderUI('unconfigured');
+      renderCloudModalState();
+      showToast('Configuração Firebase removida deste navegador.', 'info');
+    }
+
+    async function signInWithGoogleFirebase() {
+      if (!fbAuth) {
+        showToast('Salve primeiro o firebaseConfig acima!', 'warning');
+        return;
+      }
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await fbAuth.signInWithPopup(provider);
+        showToast('Conectado com Google! Sincronizando progresso...', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast(`Erro no login Google: ${err.message}`, 'warning');
+      }
+    }
+
+    async function signOutFirebaseUser() {
+      if (!fbAuth) return;
+      await fbAuth.signOut();
+      showToast('Sessão encerrada na nuvem.', 'info');
+    }
+
+    async function pushStateToFirestore() {
+      if (!currentCloudUser || !fbDb) return;
+      try {
+        updateCloudHeaderUI('syncing');
+        await fbDb.collection('estudio_espanhol_progresso').doc(currentCloudUser.uid).set({
+          ...state,
+          userEmail: currentCloudUser.email || '',
+          syncedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        lastCloudSyncTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        updateCloudHeaderUI('connected');
+        renderCloudModalState();
+      } catch (err) {
+        console.error('Erro ao enviar para Firestore:', err);
+        updateCloudHeaderUI('error');
+        showToast('Erro ao salvar na nuvem. Verifique as regras do Firestore.', 'warning');
+      }
+    }
+
+    async function pullAndMergeFromFirestore() {
+      if (!currentCloudUser || !fbDb) return;
+      try {
+        updateCloudHeaderUI('syncing');
+        const docRef = fbDb.collection('estudio_espanhol_progresso').doc(currentCloudUser.uid);
+        const snap = await docRef.get();
+        if (snap.exists) {
+          const remote = snap.data();
+          // Mesclagem inteligente: preserva maior XP, une lições, flashcards e erros
+          const mergedLessons = Array.from(new Set([...(state.completedLessons || []), ...(remote.completedLessons || [])]));
+          const mergedSaved = Array.from(new Set([...(state.savedVocabIds || []), ...(remote.savedVocabIds || [])]));
+          const mergedFc = { ...(remote.fcStatus || {}), ...(state.fcStatus || {}) };
+          const mergedAct = { ...(remote.activityMap || {}) };
+          Object.entries(state.activityMap || {}).forEach(([k, v]) => {
+            mergedAct[k] = Math.max(mergedAct[k] || 0, v);
+          });
+          const errMap = new Map();
+          [...(remote.errorNotebook || []), ...(state.errorNotebook || [])].forEach(it => errMap.set(it.id, it));
+
+          state = {
+            ...state,
+            ...remote,
+            xp: Math.max(state.xp || 0, remote.xp || 0),
+            streak: Math.max(state.streak || 1, remote.streak || 1),
+            todayCount: Math.max(state.todayCount || 0, (remote.lastDate === state.lastDate ? (remote.todayCount || 0) : 0)),
+            completedLessons: mergedLessons,
+            savedVocabIds: mergedSaved,
+            fcStatus: mergedFc,
+            activityMap: mergedAct,
+            errorNotebook: Array.from(errMap.values())
+          };
+          saveState(false);
+          await pushStateToFirestore();
+          refreshEntireUI();
+          showToast('☁️ Progresso sincronizado com a nuvem!', 'success');
+        } else {
+          // Primeira vez na nuvem: envia o progresso local atual
+          await pushStateToFirestore();
+          showToast('☁️ Progresso local enviado para a nuvem!', 'success');
+        }
+      } catch (err) {
+        console.error('Erro ao baixar do Firestore:', err);
+        updateCloudHeaderUI('error');
+      }
+    }
+
+    async function forceCloudSync() {
+      if (!currentCloudUser || !fbDb) return;
+      await pullAndMergeFromFirestore();
+    }
+
+    function updateCloudHeaderUI(status) {
+      const dot = document.getElementById('header-cloud-dot');
+      const label = document.getElementById('header-cloud-label');
+      const pill = document.getElementById('cloud-modal-status-pill');
+      if (!dot || !label) return;
+
+      if (status === 'connected' && currentCloudUser) {
+        const firstName = (currentCloudUser.displayName || 'Conectado').split(' ')[0];
+        dot.className = 'w-2 h-2 rounded-full bg-olive-600';
+        label.textContent = `☁️ ${firstName}`;
+        if (pill) { pill.textContent = 'Sincronizado na Nuvem'; pill.className = 'px-2.5 py-0.5 rounded-full bg-olive-100 text-olive-700 text-xs font-bold'; }
+      } else if (status === 'syncing') {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+        label.textContent = '☁️ Salvando...';
+        if (pill) { pill.textContent = 'Sincronizando...'; pill.className = 'px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold'; }
+      } else if (status === 'ready') {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+        label.textContent = '☁️ Entrar';
+        if (pill) { pill.textContent = 'Aguardando Login Google'; pill.className = 'px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold'; }
+      } else if (status === 'error') {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        label.textContent = '☁️ Erro Sync';
+        if (pill) { pill.textContent = 'Erro de Permissão/Config'; pill.className = 'px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-xs font-bold'; }
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-stone-400';
+        label.textContent = '☁️ Nuvem';
+        if (pill) { pill.textContent = 'Não configurado'; pill.className = 'px-2.5 py-0.5 rounded-full bg-sand-100 text-stone-600 text-xs font-bold'; }
+      }
+    }
+
+    function renderCloudModalState() {
+      const userCard = document.getElementById('cloud-user-card');
+      const loginBox = document.getElementById('cloud-login-box');
+      if (currentCloudUser) {
+        userCard.classList.remove('hidden');
+        loginBox.classList.add('hidden');
+        document.getElementById('cloud-user-name').textContent = currentCloudUser.displayName || 'Estudante';
+        document.getElementById('cloud-user-email').textContent = currentCloudUser.email || '';
+        const av = document.getElementById('cloud-user-avatar');
+        if (currentCloudUser.photoURL) { av.src = currentCloudUser.photoURL; av.style.display = 'block'; }
+        document.getElementById('cloud-last-sync-text').textContent = lastCloudSyncTime
+          ? `Última sincronização: ${lastCloudSyncTime}`
+          : 'Sincronização automática ativa';
+      } else if (fbAuth) {
+        userCard.classList.add('hidden');
+        loginBox.classList.remove('hidden');
+      } else {
+        userCard.classList.add('hidden');
+        loginBox.classList.add('hidden');
+      }
+    }
+
+    function openCloudModal() {
+      renderCloudModalState();
+      const m = document.getElementById('cloud-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeCloudModal() {
+      const m = document.getElementById('cloud-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function copyFirestoreRules() {
+      const txt = document.getElementById('firestore-rules-snippet').textContent;
+      const ta = document.createElement('textarea');
+      ta.value = txt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      showToast('Regras do Firestore copiadas!', 'success');
+    }
+
+    /* ---------------- BACKUP MANUAL JSON & CÓDIGO ---------------- */
+    function openBackupModal() {
+      const m = document.getElementById('backup-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+    function closeBackupModal() {
+      const m = document.getElementById('backup-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+    function exportProgressJSON() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `estudio-espanol-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Arquivo de backup .JSON baixado!', 'success');
+    }
+    function importProgressJSON(ev) {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (typeof imported.xp === 'number') {
+            state = { ...state, ...imported };
+            saveState(true);
+            refreshEntireUI();
+            closeBackupModal();
+            showToast('Progresso restaurado do arquivo JSON!', 'success');
+          }
+        } catch (err) { showToast('Arquivo JSON inválido.', 'warning'); }
+      };
+      reader.readAsText(file);
+    }
+    function copyProgressCode() {
+      const code = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+      const box = document.getElementById('backup-code-box');
+      box.value = code;
+      box.select();
+      document.execCommand('copy');
+      showToast('Código de progresso copiado!', 'success');
+    }
+    function restoreFromProgressCode() {
+      try {
+        const raw = document.getElementById('backup-code-box').value.trim();
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(raw))));
+        if (typeof decoded.xp === 'number') {
+          state = { ...state, ...decoded };
+          saveState(true);
+          refreshEntireUI();
+          closeBackupModal();
+          showToast('Progresso restaurado com sucesso!', 'success');
+        }
+      } catch (e) { showToast('Código inválido.', 'warning'); }
+    }
+
+    function refreshEntireUI() {
+      refreshAllCounters();
+      renderTracksSidebar();
+      openLesson(activeLessonId);
+      renderVocabBank();
+      renderProgressPage();
+    }
+
+    function addXP(amount, description) {
+        btnF.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:text-deepblue-900 transition';
+      } else {
+        bank.classList.add('hidden'); fc.classList.remove('hidden');
+        btnF.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-deepblue-900 shadow-2xs transition';
+        btnB.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:text-deepblue-900 transition';
+        filterFlashcards();
+      }
+    }
+
+    function populateFlashcardCategorySelect() {
+      const sel = document.getElementById('fc-filter-select');
+      VOCAB_CATEGORIES.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = `Categoria: ${c}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function renderVocabBank() {
+      const allCats = ['Todas', ...VOCAB_CATEGORIES];
+      document.getElementById('vocab-cat-pills').innerHTML = allCats.map(c => `
+        <button onclick="activeVocabCat='${c}'; vocabPageLimit=36; renderVocabBank()" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+          activeVocabCat === c ? 'bg-deepblue-800 text-white border-deepblue-800' : 'bg-white text-deepblue-800 border-sand-200 hover:bg-sand-100'
+        }">
+          ${c}
+        </button>
+      `).join('');
+
+      const q = (document.getElementById('vocab-search-input').value || '').toLowerCase().trim();
+      const filtered = ALL_VOCAB.filter(v => {
+        const matchCat = activeVocabCat === 'Todas' || v.cat === activeVocabCat;
+        const matchQ = !q || v.word.toLowerCase().includes(q) || v.pt.toLowerCase().includes(q) || v.exEs.toLowerCase().includes(q);
+        return matchCat && matchQ;
+      });
+
+      const slice = filtered.slice(0, vocabPageLimit);
+      document.getElementById('vocab-shown-count').textContent = slice.length;
+      document.getElementById('vocab-filtered-count').textContent = filtered.length;
+
+      const loadMoreBtn = document.getElementById('btn-load-more-vocab');
+      if (slice.length >= filtered.length) loadMoreBtn.classList.add('hidden');
+      else loadMoreBtn.classList.remove('hidden');
+
+      document.getElementById('vocab-cards-grid').innerHTML = slice.map(v => {
+        const isSaved = state.savedVocabIds.includes(v.id);
+        return `
+          <div class="bg-white p-5 rounded-2xl border border-sand-200 shadow-2xs flex flex-col justify-between gap-3">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sand-100 text-stone-600">${v.cat}</span>
+                <button onclick="speakText('${v.word.replace(/'/g, "\\'")}', 1.0, this)" title="Ouvir palavra" class="p-2 rounded-xl bg-terracotta-50 text-terracotta-600 hover:bg-terracotta-500 hover:text-white transition">
+                  <i data-lucide="volume-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <h4 class="font-serif text-xl font-bold text-deepblue-900 mt-2">${v.word}</h4>
+              <p class="text-sm font-semibold text-olive-700">${v.pt}</p>
+              <div class="mt-2.5 p-2.5 rounded-xl bg-sand-50 border border-sand-100 text-xs flex items-start justify-between gap-2">
+                <div>
+                  <p class="font-medium text-deepblue-800">"${v.exEs}"</p>
+                  <p class="text-stone-500 italic mt-0.5">"${v.exPt}"</p>
+                </div>
+                <button onclick="speakText('${v.exEs.replace(/'/g, "\\'")}', 1.0, this)" title="Ouvir frase" class="p-1.5 rounded-lg bg-white border border-sand-200 text-deepblue-800 hover:bg-terracotta-500 hover:text-white shrink-0 transition">
+                  <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+            <button onclick="toggleSaveVocabToFC('${v.id}')" class="w-full py-2 rounded-xl text-xs font-bold border transition ${
+              isSaved ? 'bg-olive-50 border-olive-600/30 text-olive-700' : 'bg-white border-sand-200 hover:bg-sand-100 text-deepblue-800'
+            }">
+              ${isSaved ? '✓ Salvo nos Flashcards' : '+ Salvar nos Flashcards'}
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function loadMoreVocab() {
+      vocabPageLimit += 36;
+      renderVocabBank();
+    }
+
+    function toggleSaveVocabToFC(id) {
+      if (state.savedVocabIds.includes(id)) {
+        state.savedVocabIds = state.savedVocabIds.filter(i => i !== id);
+        showToast('Removido dos Flashcards salvos.', 'info');
+      } else {
+        state.savedVocabIds.push(id);
+        showToast('Salvo nos Flashcards SRS!', 'success');
+      }
+      saveState();
+      renderVocabBank();
+    }
+
+    function filterFlashcards() {
+      const val = document.getElementById('fc-filter-select').value;
+      if (val === 'ALL') fcDeck = [...ALL_VOCAB];
+      else if (val === 'SAVED') {
+        fcDeck = ALL_VOCAB.filter(v => state.savedVocabIds.includes(v.id));
+        if (fcDeck.length === 0) fcDeck = [...ALL_VOCAB];
+      } else {
+        fcDeck = ALL_VOCAB.filter(v => v.cat === val);
+      }
+      fcIndex = 0;
+      renderFlashcard();
+    }
+
+    function renderFlashcard() {
+      const card = fcDeck[fcIndex];
+      if (!card) return;
+      fcFlipped = false;
+      document.getElementById('fc-card-3d').classList.remove('rotate-y-180');
+      document.getElementById('fc-front-cat').textContent = card.cat;
+      document.getElementById('fc-front-word').textContent = card.word;
+      document.getElementById('fc-back-pt').textContent = card.pt;
+      document.getElementById('fc-back-ex-es').textContent = `"${card.exEs}"`;
+      document.getElementById('fc-back-ex-pt').textContent = `"${card.exPt}"`;
+      document.getElementById('fc-idx-display').textContent = fcIndex + 1;
+      document.getElementById('fc-total-display').textContent = fcDeck.length;
+
+      const mastered = Object.values(state.fcStatus).filter(s => s === 'mastered').length;
+      document.getElementById('fc-mastered-display').textContent = `${mastered} dominados`;
+    }
+
+    function flipFlashcard() {
+      fcFlipped = !fcFlipped;
+      document.getElementById('fc-card-3d').classList.toggle('rotate-y-180', fcFlipped);
+    }
+
+    function rateFlashcard(level) {
+      const card = fcDeck[fcIndex];
+      if (!card) return;
+      if (level === 'easy') {
+        state.fcStatus[card.id] = 'mastered';
+        addXP(15, `Flashcard dominado: ${card.word}`);
+      } else if (level === 'good') {
+        state.fcStatus[card.id] = 'learning';
+        addXP(10, `Flashcard revisado: ${card.word}`);
+      } else {
+        state.fcStatus[card.id] = 'learning';
+        fcDeck.splice(Math.min(fcDeck.length, fcIndex + 2), 0, card);
+        addXP(5);
+      }
+      nextFC();
+    }
+
+    function nextFC() { fcIndex = (fcIndex + 1) % fcDeck.length; renderFlashcard(); }
+    function prevFC() { fcIndex = (fcIndex - 1 + fcDeck.length) % fcDeck.length; renderFlashcard(); }
+    function shuffleFC() { fcDeck.sort(() => Math.random() - 0.5); fcIndex = 0; renderFlashcard(); }
+
+    /* =========================================================================
+       7. ÁREA 03: GRAMÁTICA (3 ETAPAS + CONJUGADOR 35 IRREGULARES)
+       ========================================================================= */
+    let activeGrammarIdx = 0;
+    let activeGrammarStep = 1;
+
+    function switchGrammarMode(mode) {
+      const tDiv = document.getElementById('grammar-mode-topics');
+      const cDiv = document.getElementById('grammar-mode-conjugator');
+      const bT = document.getElementById('gmode-btn-topics');
+      const bC = document.getElementById('gmode-btn-conj');
+      if (mode === 'topics') {
+        tDiv.classList.remove('hidden'); cDiv.classList.add('hidden');
+        bT.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-deepblue-900 shadow-2xs transition';
+        bC.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:text-deepblue-900 transition';
+      } else {
+        tDiv.classList.add('hidden'); cDiv.classList.remove('hidden');
+        bC.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-deepblue-900 shadow-2xs transition';
+        bT.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:text-deepblue-900 transition';
+        runConjugator();
+      }
+    }
+
+    function renderGrammarTopicsMenu() {
+      document.getElementById('grammar-topics-list').innerHTML = GRAMMAR_TOPICS.map((t, idx) => `
+        <button onclick="activeGrammarIdx=${idx}; activeGrammarStep=1; renderGrammarTopicsMenu(); renderGrammarContent()" class="w-full text-left px-4 py-3 rounded-2xl border text-xs sm:text-sm font-bold transition ${
+          idx === activeGrammarIdx ? 'bg-terracotta-50 border-terracotta-500 text-terracotta-800' : 'bg-white border-sand-200 text-deepblue-800 hover:bg-sand-50'
+        }">
+          ${t.title}
+        </button>
+      `).join('');
+    }
+
+    function setGrammarStep(step) {
+      activeGrammarStep = step;
+      [1, 2, 3].forEach(s => {
+        const btn = document.getElementById(`gstep-btn-${s}`);
+        const panel = document.getElementById(`grammar-step-${s}`);
+        if (s === step) {
+          btn.className = 'py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold bg-deepblue-800 text-white transition';
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = 'py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:bg-white transition';
+          panel.classList.add('hidden');
+        }
+      });
+    }
+
+    function renderGrammarContent() {
+      const topic = GRAMMAR_TOPICS[activeGrammarIdx];
+      document.getElementById('gt-badge').textContent = `Categoria ${activeGrammarIdx + 1} de 10`;
+      document.getElementById('gt-title').textContent = topic.title;
+
+      document.getElementById('grammar-step-1').innerHTML = `
+        <div class="bg-sand-50 p-5 rounded-2xl border border-sand-200">${topic.rule}</div>
+        <div class="flex justify-end">
+          <button onclick="setGrammarStep(2)" class="px-5 py-2.5 rounded-xl bg-terracotta-500 text-white text-xs font-bold hover:bg-terracotta-600 transition">
+            Ir para Etapa 2: Exemplos →
+          </button>
+        </div>
+      `;
+
+      document.getElementById('grammar-step-2').innerHTML = `
+        <div class="space-y-2.5">
+          ${topic.examples.map(ex => `
+            <div class="flex items-center justify-between gap-3 p-4 rounded-2xl bg-sand-50 border border-sand-200">
+              <div>
+                <p class="font-bold text-sm sm:text-base text-deepblue-900">${ex.es}</p>
+                <p class="text-xs text-stone-500 mt-0.5">${ex.pt}</p>
+              </div>
+              <button onclick="speakText('${ex.es.replace(/'/g, "\\'")}', 1.0, this)" class="p-2.5 rounded-xl bg-white border border-sand-200 hover:bg-terracotta-500 hover:text-white text-deepblue-800 transition shrink-0">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+        <div class="flex justify-end pt-2">
+          <button onclick="setGrammarStep(3)" class="px-5 py-2.5 rounded-xl bg-terracotta-500 text-white text-xs font-bold hover:bg-terracotta-600 transition">
+            Ir para Etapa 3: 5 Exercícios →
+          </button>
+        </div>
+      `;
+
+      document.getElementById('grammar-step-3').innerHTML = topic.quizzes.map((qz, qIdx) => `
+        <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200 space-y-2.5">
+          <p class="text-xs sm:text-sm font-bold text-deepblue-900">${qIdx + 1}. ${qz.q}</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            ${qz.opts.map((opt, oIdx) => `
+              <button onclick="checkGrammarQuestion(${qIdx}, ${oIdx})" class="text-left p-2.5 rounded-xl bg-white border border-sand-200 hover:border-terracotta-500 text-xs font-semibold text-deepblue-900 transition">
+                ${opt}
+              </button>
+            `).join('')}
+          </div>
+          <div id="gt-qfb-${qIdx}" class="hidden p-2.5 rounded-xl text-xs font-medium"></div>
+        </div>
+      `).join('');
+
+      setGrammarStep(activeGrammarStep);
+      lucide.createIcons();
+    }
+
+    function checkGrammarQuestion(qIdx, choiceIdx) {
+      const topic = GRAMMAR_TOPICS[activeGrammarIdx];
+      const qz = topic.quizzes[qIdx];
+      const fb = document.getElementById(`gt-qfb-${qIdx}`);
+      fb.classList.remove('hidden', 'bg-olive-100', 'text-olive-700', 'bg-rose-100', 'text-rose-800');
+
+      if (choiceIdx === qz.correct) {
+        fb.classList.add('bg-olive-100', 'text-olive-700');
+        fb.innerHTML = `✅ <strong>Correto!</strong> ${qz.exp} (+15 XP)`;
+        addXP(15, `Gramática: ${topic.title}`);
+      } else {
+        fb.classList.add('bg-rose-100', 'text-rose-800');
+        fb.innerHTML = `❌ <strong>Atenção:</strong> ${qz.exp}`;
+        logErrorItem(`gram_${activeGrammarIdx}_${qIdx}`, topic.title, qz.exp, 'Gramática');
+      }
+    }
+
+    // CONJUGADOR
+    let currentConjExample = '';
+
+    function renderConjugatorQuickPills() {
+      const keys = Object.keys(VERB_DATABASE);
+      document.getElementById('conj-quick-pills').innerHTML = `
+        <span class="text-xs text-stone-400 font-bold mr-1 self-center">35 Irregulares & Base:</span>
+        ${keys.map(v => `
+          <button onclick="document.getElementById('conj-search-input').value='${v}'; runConjugator()" class="text-[11px] px-2.5 py-1 rounded-lg bg-sand-100 hover:bg-terracotta-100 text-deepblue-800 font-semibold transition">
+            ${v}
+          </button>
+        `).join('')}
+      `;
+    }
+
+    function generateRegularConjugation(inf) {
+      const clean = inf.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const end = clean.slice(-2);
+      const stem = clean.slice(0, -2);
+      if (end === 'ar') {
+        return {
+          m: 'Verbo Regular (-AR)', t: 'Conjugação Automática Regular',
+          ex: `Yo ${stem}o y nosotros ${stem}amos todos los días.`,
+          pres: [`${stem}o`, `${stem}as`, `${stem}a`, `${stem}amos`, `${stem}áis`, `${stem}an`],
+          indef: [`${stem}é`, `${stem}aste`, `${stem}ó`, `${stem}amos`, `${stem}asteis`, `${stem}aron`],
+          imp: [`${stem}aba`, `${stem}abas`, `${stem}aba`, `${stem}ábamos`, `${stem}abais`, `${stem}aban`],
+          fut: [`${clean}é`, `${clean}ás`, `${clean}á`, `${clean}emos`, `${clean}éis`, `${clean}án`]
+        };
+      } else if (end === 'er') {
+        return {
+          m: 'Verbo Regular (-ER)', t: 'Conjugação Automática Regular',
+          ex: `Yo ${stem}o y ellos ${stem}en con frecuencia.`,
+          pres: [`${stem}o`, `${stem}es`, `${stem}e`, `${stem}emos`, `${stem}éis`, `${stem}en`],
+          indef: [`${stem}í`, `${stem}iste`, `${stem}ió`, `${stem}imos`, `${stem}isteis`, `${stem}ieron`],
+          imp: [`${stem}ía`, `${stem}ías`, `${stem}ía`, `${stem}íamos`, `${stem}íais`, `${stem}ían`],
+          fut: [`${clean}é`, `${clean}ás`, `${clean}á`, `${clean}emos`, `${clean}éis`, `${clean}án`]
+        };
+      } else if (end === 'ir') {
+        return {
+          m: 'Verbo Regular (-IR)', t: 'Conjugação Automática Regular',
+          ex: `Nosotros ${stem}imos y ellos ${stem}en aquí.`,
+          pres: [`${stem}o`, `${stem}es`, `${stem}e`, `${stem}imos`, `${stem}ís`, `${stem}en`],
+          indef: [`${stem}í`, `${stem}iste`, `${stem}ió`, `${stem}imos`, `${stem}isteis`, `${stem}ieron`],
+          imp: [`${stem}ía`, `${stem}ías`, `${stem}ía`, `${stem}íamos`, `${stem}íais`, `${stem}ían`],
+          fut: [`${clean}é`, `${clean}ás`, `${clean}á`, `${clean}emos`, `${clean}éis`, `${clean}án`]
+        };
+      }
+      return null;
+    }
+
+    function runConjugator() {
+      const raw = document.getElementById('conj-search-input').value.trim().toLowerCase();
+      if (!raw) return;
+      const norm = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const data = VERB_DATABASE[raw] || VERB_DATABASE[norm] || generateRegularConjugation(raw);
+
+      if (!data) {
+        showToast('Digite um verbo no infinitivo terminado em -ar, -er ou -ir (ex: cantar, beber, escribir).', 'warning');
+        return;
+      }
+
+      document.getElementById('conj-verb-title').textContent = raw.toUpperCase();
+      document.getElementById('conj-verb-meaning').textContent = `Significado: ${data.m} • Tipo: ${data.t} • Exemplo: "${data.ex}"`;
+      currentConjExample = data.ex;
+
+      const pronouns = ['Yo', 'Tú', 'Él / Ella / Usted', 'Nosotros / as', 'Vosotros / as', 'Ellos / Ellas / Ustedes'];
+      const tenses = [
+        { label: 'Presente de Indicativo', key: 'pres' },
+        { label: 'Pretérito Indefinido (Passado Pontual)', key: 'indef' },
+        { label: 'Pretérito Imperfecto (Passado Contínuo)', key: 'imp' },
+        { label: 'Futuro Simple', key: 'fut' }
+      ];
+
+      document.getElementById('conj-tables-grid').innerHTML = tenses.map(t => `
+        <div class="bg-sand-50/80 rounded-2xl border border-sand-200 p-4 space-y-2">
+          <h4 class="font-serif font-bold text-base text-deepblue-900 border-b border-sand-200 pb-2">${t.label}</h4>
+          <div class="divide-y divide-sand-200/60 text-xs sm:text-sm">
+            ${pronouns.map((p, idx) => {
+              const form = data[t.key][idx];
+              return `
+                <div class="py-2 flex items-center justify-between">
+                  <span class="text-stone-500 font-medium">${p}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-deepblue-900">${form}</span>
+                    <button onclick="speakText('${form}', 1.0, this)" class="p-1.5 rounded-lg hover:bg-terracotta-100 text-terracotta-600 transition">
+                      <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    /* =========================================================================
+       8. ÁREA 04: OS 7 JOGOS EDUCATIVOS
+       ========================================================================= */
+    function selectGame(num) {
+      document.querySelectorAll('.game-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`game-panel-${num}`).classList.remove('hidden');
+
+      document.querySelectorAll('.game-tab-btn').forEach(b => {
+        if (Number(b.getAttribute('data-game-btn')) === num) {
+          b.className = 'game-tab-btn p-3 rounded-2xl border border-terracotta-500 bg-terracotta-50 text-terracotta-800 text-left transition';
+        } else {
+          b.className = 'game-tab-btn p-3 rounded-2xl border border-sand-200 bg-white hover:bg-sand-50 text-deepblue-800 text-left transition';
+        }
+      });
+
+      if (num === 1) initGame1();
+      if (num === 2) initGame2();
+      if (num === 4) initGame4();
+      if (num === 5) initGame5();
+      if (num === 6) initGame6();
+      if (num === 7) initGame7();
+    }
+
+    // JOGO 1
+    let g1SelEs = null, g1Matched = [];
+    function initGame1() {
+      g1SelEs = null; g1Matched = [];
+      const round = [...G1_PAIRS].sort(() => Math.random() - 0.5).slice(0, 5);
+      const esCol = [...round].sort(() => Math.random() - 0.5);
+      const ptCol = [...round].sort(() => Math.random() - 0.5);
+
+      document.getElementById('g1-es-col').innerHTML = esCol.map(it => `
+        <button onclick="pickG1Es('${it.es}', this)" id="g1-es-${it.es}" class="w-full p-3.5 rounded-2xl border border-sand-200 bg-sand-50 hover:border-terracotta-500 font-bold text-sm text-deepblue-900 transition">
+          ${it.es}
+        </button>
+      `).join('');
+
+      document.getElementById('g1-pt-col').innerHTML = ptCol.map(it => `
+        <button onclick="pickG1Pt('${it.es}', '${it.pt}')" id="g1-pt-${it.es}" class="w-full p-3.5 rounded-2xl border border-sand-200 bg-white hover:border-deepblue-700 font-semibold text-sm text-deepblue-800 transition">
+          ${it.pt}
+        </button>
+      `).join('');
+    }
+
+    function pickG1Es(es, btn) {
+      if (g1Matched.includes(es)) return;
+      g1SelEs = es;
+      speakText(es, 1.0, btn);
+      document.querySelectorAll('[id^="g1-es-"]').forEach(b => {
+        const w = b.id.replace('g1-es-', '');
+        if (!g1Matched.includes(w)) {
+          b.className = w === es
+            ? 'w-full p-3.5 rounded-2xl border-2 border-terracotta-500 bg-terracotta-50 font-bold text-sm text-terracotta-800 transition'
+            : 'w-full p-3.5 rounded-2xl border border-sand-200 bg-sand-50 font-bold text-sm text-deepblue-900 transition';
+        }
+      });
+    }
+
+    function pickG1Pt(targetEs, pt) {
+      if (!g1SelEs) { showToast('Clique primeiro na palavra em espanhol!', 'info'); return; }
+      if (g1Matched.includes(targetEs)) return;
+      if (g1SelEs === targetEs) {
+        g1Matched.push(targetEs);
+        document.getElementById(`g1-es-${targetEs}`).className = 'w-full p-3.5 rounded-2xl border border-olive-600 bg-olive-100 font-bold text-sm text-olive-700 opacity-75';
+        document.getElementById(`g1-pt-${targetEs}`).className = 'w-full p-3.5 rounded-2xl border border-olive-600 bg-olive-100 font-bold text-sm text-olive-700 opacity-75';
+        g1SelEs = null;
+        addXP(10, `Combine palavras: ${targetEs}`);
+        if (g1Matched.length === 5) showToast('🎉 Rodada completa! +50 XP!', 'success');
+      } else {
+        showToast('Não combina! Tente outro par.', 'warning');
+      }
+    }
+
+    // JOGO 2
+    let g2Curr = null, g2Pool = [], g2Chosen = [], g2Score = 0;
+    function initGame2() {
+      g2Curr = G2_WORDS[Math.floor(Math.random() * G2_WORDS.length)];
+      document.getElementById('g2-hint').textContent = g2Curr.hint;
+      document.getElementById('g2-feedback').classList.add('hidden');
+      g2Pool = g2Curr.word.split('').map((ch, i) => ({ id: i, ch })).sort(() => Math.random() - 0.5);
+      g2Chosen = [];
+      renderG2();
+    }
+
+    function renderG2() {
+      document.getElementById('g2-answer-slots').innerHTML = g2Chosen.length === 0
+        ? `<span class="text-xs text-stone-400 italic self-center">Clique nas letras abaixo...</span>`
+        : g2Chosen.map((it, i) => `<button onclick="unpickG2(${i})" class="w-11 h-11 rounded-xl bg-terracotta-500 text-white font-bold text-lg shadow-2xs">${it.ch}</button>`).join('');
+
+      document.getElementById('g2-letter-pool').innerHTML = g2Pool.map((it, i) => `
+        <button onclick="pickG2(${i})" class="w-11 h-11 rounded-xl bg-white border border-sand-200 hover:border-terracotta-500 text-deepblue-900 font-bold text-lg shadow-2xs transition">${it.ch}</button>
+      `).join('');
+    }
+
+    function pickG2(idx) {
+      g2Chosen.push(g2Pool.splice(idx, 1)[0]);
+      renderG2();
+      if (g2Pool.length === 0) {
+        const formed = g2Chosen.map(i => i.ch).join('');
+        const fb = document.getElementById('g2-feedback');
+        fb.classList.remove('hidden', 'bg-olive-100', 'text-olive-700', 'bg-rose-100', 'text-rose-800');
+        if (formed === g2Curr.word) {
+          g2Score++; document.getElementById('g2-score').textContent = g2Score;
+          fb.classList.add('bg-olive-100', 'text-olive-700');
+          fb.textContent = `🎉 Perfeito! "${g2Curr.word}" (${g2Curr.hint}). +15 XP!`;
+          speakText(g2Curr.word);
+          addXP(15, `Palavra embaralhada: ${g2Curr.word}`);
+        } else {
+          fb.classList.add('bg-rose-100', 'text-rose-800');
+          fb.textContent = `❌ Formou "${formed}". Clique em Limpar Letras e tente novamente!`;
+        }
+      }
+    }
+
+    function unpickG2(idx) { g2Pool.push(g2Chosen.splice(idx, 1)[0]); document.getElementById('g2-feedback').classList.add('hidden'); renderG2(); }
+    function clearGame2Slots() { g2Pool = [...g2Pool, ...g2Chosen]; g2Chosen = []; document.getElementById('g2-feedback').classList.add('hidden'); renderG2(); }
+
+    // JOGO 3
+    let g3TimerInt = null, g3Time = 30, g3Score = 0, g3Combo = 0, g3Curr = null;
+    function startGame3() {
+      clearInterval(g3TimerInt);
+      g3Time = 30; g3Score = 0; g3Combo = 0;
+      document.getElementById('g3-timer').textContent = g3Time;
+      document.getElementById('g3-score').textContent = g3Score;
+      document.getElementById('g3-start-screen').classList.add('hidden');
+      document.getElementById('g3-play-screen').classList.remove('hidden');
+      nextG3();
+      g3TimerInt = setInterval(() => {
+        g3Time--;
+        document.getElementById('g3-timer').textContent = g3Time;
+        if (g3Time <= 0) {
+          clearInterval(g3TimerInt);
+          document.getElementById('g3-play-screen').classList.add('hidden');
+          document.getElementById('g3-start-screen').classList.remove('hidden');
+          showToast(`⏱️ Tempo esgotado! Pontuação final: ${g3Score} pts!`, 'success');
+        }
+      }, 1000);
+    }
+
+    function nextG3() {
+      g3Curr = G3_QUESTIONS[Math.floor(Math.random() * G3_QUESTIONS.length)];
+      document.getElementById('g3-question').textContent = g3Curr.q;
+      const opts = g3Curr.opts.map((t, i) => ({ t, ok: i === g3Curr.ans })).sort(() => Math.random() - 0.5);
+      document.getElementById('g3-options').innerHTML = opts.map(o => `
+        <button onclick="answerG3(${o.ok})" class="p-3.5 rounded-xl bg-white border border-sand-200 hover:border-terracotta-500 text-sm font-bold text-deepblue-900 text-left transition">${o.t}</button>
+      `).join('');
+    }
+
+    function answerG3(ok) {
+      if (ok) {
+        g3Combo++;
+        const pts = g3Combo >= 3 ? 25 : 15;
+        g3Score += pts;
+        document.getElementById('g3-score').textContent = g3Score;
+        addXP(pts);
+      } else {
+        g3Combo = 0;
+        logErrorItem(`g3_${g3Curr.q}`, g3Curr.q, `Correto: ${g3Curr.opts[g3Curr.ans]}`, 'Quiz Relâmpago');
+      }
+      nextG3();
+    }
+
+    // JOGO 4: CAÇA-PALAVRAS
+    let g4Grid = [], g4Targets = [], g4Found = [], g4Start = null, g4FoundCells = new Set();
+    function initGame4() {
+      const size = 10;
+      g4Grid = Array.from({ length: size }, () => Array(size).fill(''));
+      g4Targets = [...G4_WORD_BANK].sort(() => Math.random() - 0.5).slice(0, 5);
+      g4Found = []; g4Start = null; g4FoundCells = new Set();
+
+      g4Targets.forEach((word, wIdx) => {
+        let placed = false, tries = 0;
+        while (!placed && tries < 80) {
+          tries++;
+          const dir = wIdx % 2 === 0 ? 'H' : 'V';
+          const r = Math.floor(Math.random() * (dir === 'V' ? size - word.length : size));
+          const c = Math.floor(Math.random() * (dir === 'H' ? size - word.length : size));
+          let ok = true;
+          for (let i = 0; i < word.length; i++) {
+            const rr = dir === 'V' ? r + i : r, cc = dir === 'H' ? c + i : c;
+            if (g4Grid[rr][cc] !== '' && g4Grid[rr][cc] !== word[i]) { ok = false; break; }
+          }
+          if (ok) {
+            for (let i = 0; i < word.length; i++) {
+              const rr = dir === 'V' ? r + i : r, cc = dir === 'H' ? c + i : c;
+              g4Grid[rr][cc] = word[i];
+            }
+            placed = true;
+          }
+        }
+      });
+
+      const abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (!g4Grid[r][c]) g4Grid[r][c] = abc[Math.floor(Math.random() * abc.length)];
+        }
+      }
+      renderG4();
+    }
+
+    function renderG4() {
+      document.getElementById('g4-word-list').innerHTML = g4Targets.map(w => `
+        <span class="px-3 py-1 rounded-full text-xs font-bold border ${
+          g4Found.includes(w) ? 'bg-olive-100 border-olive-600 text-olive-700 line-through' : 'bg-white border-sand-200 text-deepblue-900'
+        }">${w}</span>
+      `).join('');
+
+      const box = document.getElementById('g4-grid');
+      box.innerHTML = '';
+      for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 10; c++) {
+          const key = `${r}-${c}`;
+          const isFound = g4FoundCells.has(key);
+          const isSel = g4Start && g4Start.r === r && g4Start.c === c;
+          const btn = document.createElement('button');
+          btn.textContent = g4Grid[r][c];
+          btn.className = `ws-cell w-7 h-7 sm:w-8 sm:h-8 rounded-lg border text-xs sm:text-sm font-bold transition ${
+            isFound ? 'bg-olive-600 text-white border-olive-700' :
+            isSel ? 'bg-terracotta-500 text-white border-terracotta-600' :
+            'bg-white border-sand-200 text-deepblue-900 hover:bg-terracotta-50'
+          }`;
+          btn.onclick = () => clickG4(r, c);
+          box.appendChild(btn);
+        }
+      }
+    }
+
+    function clickG4(r, c) {
+      if (!g4Start) { g4Start = { r, c }; renderG4(); return; }
+      const { r: r1, c: c1 } = g4Start;
+      g4Start = null;
+      let coords = [];
+      if (r1 === r) {
+        const step = c >= c1 ? 1 : -1;
+        for (let cc = c1; cc !== c + step; cc += step) coords.push([r, cc]);
+      } else if (c1 === c) {
+        const step = r >= r1 ? 1 : -1;
+        for (let rr = r1; rr !== r + step; rr += step) coords.push([rr, c]);
+      } else {
+        showToast('Selecione em linha reta horizontal ou vertical!', 'info');
+        renderG4();
+        return;
+      }
+
+      const word = coords.map(([rr, cc]) => g4Grid[rr][cc]).join('');
+      const rev = word.split('').reverse().join('');
+      const match = g4Targets.find(t => t === word || t === rev);
+      if (match && !g4Found.includes(match)) {
+        g4Found.push(match);
+        coords.forEach(([rr, cc]) => g4FoundCells.add(`${rr}-${cc}`));
+        speakText(match);
+        addXP(20, `Caça-palavras: ${match}`);
+        if (g4Found.length === g4Targets.length) showToast('🏆 Parabéns! Encontrou todas as palavras!', 'success');
+      } else {
+        showToast('Nenhuma palavra da lista nessa seleção.', 'info');
+      }
+      renderG4();
+    }
+
+    // JOGO 5
+    let g5Idx = 0, g5Sel = [], g5Bank = [];
+    function initGame5() {
+      const item = G5_SENTENCES[g5Idx];
+      document.getElementById('g5-pt-prompt').textContent = item.pt;
+      document.getElementById('g5-feedback').classList.add('hidden');
+      g5Sel = [];
+      g5Bank = item.es.split(' ').map((w, i) => ({ id: i, w })).sort(() => Math.random() - 0.5);
+      renderG5();
+    }
+
+    function renderG5() {
+      document.getElementById('g5-selected').innerHTML = g5Sel.length === 0
+        ? `<span class="text-xs text-stone-400 italic">Clique nos blocos abaixo...</span>`
+        : g5Sel.map((t, i) => `<button onclick="g5Bank.push(g5Sel.splice(${i},1)[0]); renderG5()" class="px-3.5 py-2 rounded-xl bg-terracotta-500 text-white font-bold text-sm">${t.w}</button>`).join('');
+
+      document.getElementById('g5-bank').innerHTML = g5Bank.map((t, i) => `
+        <button onclick="g5Sel.push(g5Bank.splice(${i},1)[0]); renderG5()" class="px-3.5 py-2 rounded-xl bg-sand-100 hover:bg-sand-200 border border-sand-200 text-deepblue-900 font-bold text-sm">${t.w}</button>
+      `).join('');
+    }
+
+    function checkGame5() {
+      const target = G5_SENTENCES[g5Idx].es;
+      const formed = g5Sel.map(t => t.w).join(' ');
+      const fb = document.getElementById('g5-feedback');
+      fb.classList.remove('hidden', 'bg-olive-100', 'text-olive-700', 'bg-rose-100', 'text-rose-800');
+      if (formed === target) {
+        fb.classList.add('bg-olive-100', 'text-olive-700');
+        fb.innerHTML = `✅ <strong>Perfeito!</strong> "${target}" (+15 XP)`;
+        speakText(target);
+        addXP(15, 'Monte a frase');
+      } else {
+        fb.classList.add('bg-rose-100', 'text-rose-800');
+        fb.innerHTML = `❌ <strong>Ordem correta:</strong> "${target}"`;
+        logErrorItem(`g5_${g5Idx}`, target, G5_SENTENCES[g5Idx].pt, 'Monte a Frase');
+      }
+    }
+
+    function nextGame5() { g5Idx = (g5Idx + 1) % G5_SENTENCES.length; initGame5(); }
+
+    // JOGO 6
+    let g6Idx = 0, g6Score = 0;
+    function initGame6() {
+      const item = G6_LISTENING[g6Idx];
+      document.getElementById('g6-feedback').classList.add('hidden');
+      const opts = [{ t: item.pt, ok: true }, ...item.wrong.map(w => ({ t: w, ok: false }))].sort(() => Math.random() - 0.5);
+      document.getElementById('g6-options').innerHTML = opts.map(o => `
+        <button onclick="answerG6(${o.ok})" class="p-4 rounded-2xl bg-sand-50 hover:bg-terracotta-50 border border-sand-200 hover:border-terracotta-500 text-left text-xs sm:text-sm font-bold text-deepblue-900 transition">${o.t}</button>
+      `).join('');
+    }
+
+    function answerG6(ok) {
+      const item = G6_LISTENING[g6Idx];
+      const fb = document.getElementById('g6-feedback');
+      fb.classList.remove('hidden', 'bg-olive-100', 'text-olive-700', 'bg-rose-100', 'text-rose-800');
+      if (ok) {
+        g6Score++; document.getElementById('g6-score').textContent = g6Score;
+        fb.classList.add('bg-olive-100', 'text-olive-700');
+        fb.innerHTML = `✅ <strong>Acertou!</strong> Frase: "${item.es}" (+15 XP)`;
+        addXP(15, 'O que você ouviu');
+      } else {
+        fb.classList.add('bg-rose-100', 'text-rose-800');
+        fb.innerHTML = `❌ <strong>A frase falada era:</strong> "${item.es}" (${item.pt})`;
+        logErrorItem(`g6_${g6Idx}`, item.es, item.pt, 'O que você ouviu');
+      }
+    }
+
+    function nextGame6() { g6Idx = (g6Idx + 1) % G6_LISTENING.length; initGame6(); speakText(G6_LISTENING[g6Idx].es); }
+
+    // JOGO 7
+    let g7Idx = 0;
+    function initGame7() {
+      const item = G7_ERRORS[g7Idx];
+      document.getElementById('g7-wrong-sentence').textContent = `"${item.wrong}"`;
+      document.getElementById('g7-context-pt').textContent = `Intenção: "${item.intent}"`;
+      document.getElementById('g7-feedback').classList.add('hidden');
+      document.getElementById('g7-options').innerHTML = item.opts.map((o, i) => `
+        <button onclick="answerG7(${i})" class="w-full text-left p-3.5 rounded-xl bg-white border border-sand-200 hover:border-terracotta-500 text-sm font-bold text-deepblue-900 transition">${o}</button>
+      `).join('');
+    }
+
+    function answerG7(idx) {
+      const item = G7_ERRORS[g7Idx];
+      const fb = document.getElementById('g7-feedback');
+      fb.classList.remove('hidden', 'bg-olive-100', 'text-olive-700', 'bg-rose-100', 'text-rose-800');
+      if (idx === item.correct) {
+        fb.classList.add('bg-olive-100', 'text-olive-700');
+        fb.innerHTML = `✅ <strong>Excelente!</strong> ${item.exp}`;
+        speakText(item.opts[item.correct]);
+        addXP(15, 'Encontre o erro');
+      } else {
+        fb.classList.add('bg-rose-100', 'text-rose-800');
+        fb.innerHTML = `❌ <strong>Forma correta: "${item.opts[item.correct]}".</strong> ${item.exp}`;
+        logErrorItem(`g7_${g7Idx}`, item.wrong, `Correto: ${item.opts[item.correct]} — ${item.exp}`, 'Encontre o Erro');
+      }
+    }
+
+    function nextGame7() { g7Idx = (g7Idx + 1) % G7_ERRORS.length; initGame7(); }
+
+    /* =========================================================================
+       9. ÁREA 05: CONVERSAÇÃO
+       ========================================================================= */
+    let activeConvIdx = 0, convStep = 0, showConvPt = false, convHistory = [];
+
+    function renderConversationScenarios() {
+      document.getElementById('conv-scenarios-bar').innerHTML = CONVERSATION_SCENARIOS.map((sc, i) => `
+        <button onclick="activeConvIdx=${i}; restartConversation()" class="px-3.5 py-2 rounded-2xl text-xs font-bold border transition ${
+          i === activeConvIdx ? 'bg-deepblue-800 text-white border-deepblue-800' : 'bg-white text-deepblue-800 border-sand-200 hover:bg-sand-100'
+        }">${sc.title}</button>
+      `).join('');
+    }
+
+    function restartConversation() {
+      renderConversationScenarios();
+      const sc = CONVERSATION_SCENARIOS[activeConvIdx];
+      document.getElementById('conv-scenario-title').textContent = sc.title;
+      document.getElementById('conv-scenario-desc').textContent = sc.desc;
+      convStep = 0;
+      convHistory = [{ sender: 'npc', es: sc.steps[0].npcEs, pt: sc.steps[0].npcPt }];
+      renderConversationChat();
+      speakText(sc.steps[0].npcEs);
+    }
+
+    function toggleConvTranslation() {
+      showConvPt = !showConvPt;
+      document.getElementById('btn-toggle-conv-pt').textContent = showConvPt ? '🙈 Ocultar Tradução' : '👁️ Mostrar Tradução';
+      renderConversationChat();
+    }
+
+    function renderConversationChat() {
+      const sc = CONVERSATION_SCENARIOS[activeConvIdx];
+      const msgBox = document.getElementById('conv-messages-box');
+      msgBox.innerHTML = convHistory.map(m => `
+        <div class="flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}">
+          <div class="max-w-[82%] p-4 rounded-2xl ${
+            m.sender === 'user' ? 'bg-terracotta-500 text-white rounded-br-xs' : 'bg-white border border-sand-200 text-deepblue-900 rounded-bl-xs shadow-2xs'
+          }">
+            <div class="flex items-start justify-between gap-3">
+              <p class="text-sm font-semibold">${m.es}</p>
+              <button onclick="speakText('${m.es.replace(/'/g, "\\'")}', 1.0, this)" class="opacity-85 hover:opacity-100 shrink-0">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+            ${showConvPt ? `<p class="text-xs mt-1.5 opacity-85 italic">${m.pt}</p>` : ''}
+          </div>
+        </div>
+      `).join('');
+      msgBox.scrollTop = msgBox.scrollHeight;
+
+      const chBox = document.getElementById('conv-choices-box');
+      if (convStep >= sc.steps.length) {
+        chBox.innerHTML = `
+          <div class="text-center py-2 space-y-2">
+            <p class="text-sm font-bold text-olive-700">🎉 Diálogo concluído com naturalidade! (+25 XP)</p>
+            <button onclick="restartConversation()" class="px-4 py-2 rounded-xl bg-deepblue-800 text-white text-xs font-bold">Praticar Novamente</button>
+          </div>
+        `;
+      } else {
+        const st = sc.steps[convStep];
+        chBox.innerHTML = `
+          <p class="text-[11px] font-bold uppercase tracking-wider text-stone-400">Escolha sua resposta:</p>
+          ${st.choices.map((ch, idx) => `
+            <button onclick="chooseConversationReply(${idx})" class="w-full text-left p-3.5 rounded-2xl bg-sand-50 hover:bg-terracotta-50 border border-sand-200 hover:border-terracotta-500 transition">
+              <p class="text-xs sm:text-sm font-bold text-deepblue-900">${ch.es}</p>
+              ${showConvPt ? `<p class="text-xs text-stone-500 mt-0.5">${ch.pt}</p>` : ''}
+            </button>
+          `).join('')}
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    function chooseConversationReply(idx) {
+      const sc = CONVERSATION_SCENARIOS[activeConvIdx];
+      const chosen = sc.steps[convStep].choices[idx];
+      if (!chosen.valid) { showToast(`⚠️ Dica: ${chosen.hint}`, 'warning'); return; }
+
+      convHistory.push({ sender: 'user', es: chosen.es, pt: chosen.pt });
+      speakText(chosen.es);
+      convStep++;
+
+      if (convStep < sc.steps.length) {
+        const next = sc.steps[convStep];
+        convHistory.push({ sender: 'npc', es: next.npcEs, pt: next.npcPt });
+      } else {
+        addXP(25, `Conversação: ${sc.title}`);
+      }
+      renderConversationChat();
+    }
+
+    /* =========================================================================
+       10. ÁREA 06: PRONÚNCIA
+       ========================================================================= */
+    function renderPronunciationModule() {
+      document.getElementById('phonetics-cards-grid').innerHTML = PHONETICS_GUIDE.map(p => `
+        <div class="bg-white p-5 rounded-2xl border border-sand-200 shadow-2xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-serif text-xl font-bold text-terracotta-600">${p.letter}</span>
+            <button onclick="speakText('${p.example}', 1.0, this)" class="p-2 rounded-xl bg-sand-100 hover:bg-terracotta-500 hover:text-white text-deepblue-800 transition">
+              <i data-lucide="volume-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p class="text-xs font-bold uppercase text-deepblue-800">${p.sound}</p>
+          <p class="text-sm font-semibold text-olive-700">${p.example}</p>
+          <p class="text-xs text-stone-500 leading-relaxed">${p.tip}</p>
+        </div>
+      `).join('');
+
+      document.getElementById('pron-phrase-select').innerHTML = PRONUNCIATION_PHRASES.map((ph, i) => `
+        <option value="${i}">Frase ${i + 1}: ${ph.es.slice(0, 34)}...</option>
+      `).join('');
+      selectPronunciationPhrase();
+    }
+
+    function selectPronunciationPhrase() {
+      const idx = Number(document.getElementById('pron-phrase-select').value || 0);
+      const item = PRONUNCIATION_PHRASES[idx];
+      document.getElementById('pron-target-phrase').textContent = `"${item.es}"`;
+      document.getElementById('pron-target-pt').textContent = item.pt;
+      document.getElementById('pron-result-box').classList.add('hidden');
+    }
+
+    function startSpeechRecognition() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const resultBox = document.getElementById('pron-result-box');
+      const statusText = document.getElementById('mic-status-text');
+      const btnLabel = document.getElementById('mic-btn-label');
+
+      if (!SpeechRec) {
+        resultBox.classList.remove('hidden');
+        resultBox.className = 'p-5 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 text-xs space-y-1 text-center';
+        resultBox.innerHTML = `<strong>Reconhecimento de microfone indisponível neste navegador/iframe.</strong><br>Use os botões "Ouvir Normal / Lento" acima para treinar a repetição em voz alta (Shadowing).`;
+        return;
+      }
+
+      const idx = Number(document.getElementById('pron-phrase-select').value || 0);
+      const targetEs = PRONUNCIATION_PHRASES[idx].es;
+
+      const rec = new SpeechRec();
+      rec.lang = state.accent || 'es-ES';
+      rec.interimResults = false;
+
+      btnLabel.textContent = 'Ouvindo... Fale agora!';
+      statusText.textContent = 'Microfone ativo. Leia a frase em espanhol...';
+
+      rec.onresult = (ev) => {
+        const spoken = ev.results[0][0].transcript;
+        const cleanT = targetEs.toLowerCase().replace(/[¿?¡!.,]/g, '').trim().split(' ');
+        const cleanS = spoken.toLowerCase().replace(/[¿?¡!.,]/g, '').trim().split(' ');
+        const hits = cleanT.filter(w => cleanS.includes(w)).length;
+        const acc = Math.round((hits / cleanT.length) * 100);
+
+        resultBox.classList.remove('hidden', 'bg-olive-100', 'border-olive-600', 'text-olive-700', 'bg-amber-50', 'border-amber-200', 'text-amber-900');
+        if (acc >= 70) {
+          resultBox.classList.add('bg-olive-100', 'border-olive-600', 'text-olive-700');
+          resultBox.innerHTML = `<p class="font-bold text-base">🎙️ Precisão: ${acc}% — Ótima pronúncia!</p><p class="text-xs">Você disse: <strong>"${spoken}"</strong> (+20 XP)</p>`;
+          addXP(20, 'Treino de pronúncia');
+        } else {
+          resultBox.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900');
+          resultBox.innerHTML = `<p class="font-bold text-base">🎙️ Precisão: ${acc}% — Tente novamente!</p><p class="text-xs">O sistema ouviu: <strong>"${spoken}"</strong></p>`;
+        }
+      };
+
+      rec.onerror = () => { statusText.textContent = 'Não foi possível captar áudio. Verifique as permissões do microfone.'; };
+      rec.onend = () => { btnLabel.textContent = 'Falar Agora no Microfone'; };
+      rec.start();
+    }
+
+    /* =========================================================================
+       11. ÁREA 07: FALSOS AMIGOS
+       ========================================================================= */
+    let currentModalFF = null, inlineFFIdx = 0;
+
+    function renderFalseFriendsTable() {
+      const q = (document.getElementById('ff-search-input').value || '').toLowerCase().trim();
+      const list = FALSE_FRIENDS_DICT.filter(it =>
+        it.es.toLowerCase().includes(q) || it.pt.toLowerCase().includes(q) || it.looks.toLowerCase().includes(q)
+      );
+
+      document.getElementById('ff-dictionary-tbody').innerHTML = list.map(it => `
+        <tr class="hover:bg-sand-50/80 transition">
+          <td class="py-3.5 px-4 font-serif font-bold text-base text-deepblue-900">
+            <div class="flex items-center gap-2">
+              <span>${it.es}</span>
+              <button onclick="speakText('${it.es}', 1.0, this)" class="p-1.5 rounded-lg bg-sand-100 hover:bg-terracotta-500 hover:text-white text-deepblue-800 transition">
+                <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </td>
+          <td class="py-3.5 px-4 font-bold text-olive-700">${it.pt}</td>
+          <td class="py-3.5 px-4 text-rose-700 line-through opacity-80">${it.looks}</td>
+          <td class="py-3.5 px-4">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <p class="text-xs font-semibold text-deepblue-900">"${it.exEs}"</p>
+                <p class="text-[11px] text-stone-500 italic">"${it.exPt}"</p>
+              </div>
+              <button onclick="speakText('${it.exEs.replace(/'/g, "\\'")}', 1.0, this)" class="px-2.5 py-1 rounded-lg bg-terracotta-50 text-terracotta-700 hover:bg-terracotta-500 hover:text-white text-[11px] font-bold shrink-0 transition">
+                Ouvir
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function openDailyFFModal() {
+      currentModalFF = FALSE_FRIENDS_DICT[Math.floor(Math.random() * FALSE_FRIENDS_DICT.length)];
+      document.getElementById('modal-ff-word').textContent = currentModalFF.es;
+      document.getElementById('modal-ff-sentence').textContent = `"${currentModalFF.exEs}"`;
+      document.getElementById('modal-ff-feedback').classList.add('hidden');
+
+      const other = FALSE_FRIENDS_DICT.find(f => f.es !== currentModalFF.es)?.pt || 'Janela';
+      const opts = [
+        { text: currentModalFF.pt, ok: true },
+        { text: currentModalFF.looks, ok: false },
+        { text: other, ok: false }
+      ].sort(() => Math.random() - 0.5);
+
+      document.getElementById('modal-ff-options').innerHTML = opts.map(o => `
+        <button onclick="answerModalFF(${o.ok})" class="w-full text-left p-3.5 rounded-xl bg-sand-50 hover:bg-terracotta-50 border border-sand-200 hover:border-terracotta-500 text-sm font-bold text-deepblue-900 transition">${o.text}</button>
+      `).join('');
+
+      const modal = document.getElementById('daily-ff-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      speakText(currentModalFF.exEs);
+    }
+
+    function closeDailyFFModal() {
+      const modal = document.getElementById('daily-ff-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function answerModalFF(ok) {
+      const fb = document.getElementById('modal-ff-feedback');
+      fb.classList.remove('hidden', 'bg-olive-100', 'text-olive-700', 'bg-rose-100', 'text-rose-800');
+      if (ok) {
+        fb.classList.add('bg-olive-100', 'text-olive-700');
+        fb.innerHTML = `🎯 <strong>Boa! Você não caiu nessa!</strong> "${currentModalFF.es}" significa <strong>${currentModalFF.pt}</strong> (${currentModalFF.exPt}). +20 XP!`;
+        addXP(20, `Não caia nessa: ${currentModalFF.es}`);
+      } else {
+        fb.classList.add('bg-rose-100', 'text-rose-800');
+        fb.innerHTML = `🚨 <strong>Caiu na pegadinha!</strong> Parece "${currentModalFF.looks}", mas significa <strong>${currentModalFF.pt}</strong>.`;
+        logErrorItem(`ff_${currentModalFF.es}`, currentModalFF.es, `Significa "${currentModalFF.pt}" (não "${currentModalFF.looks}").`, 'Falsos Amigos');
+      }
+    }
+
+    function startMiniFFQuiz() { document.getElementById('ff-inline-quiz-box').classList.remove('hidden'); nextInlineFFQuiz(); }
+
+    function nextInlineFFQuiz() {
+      inlineFFIdx = Math.floor(Math.random() * FALSE_FRIENDS_DICT.length);
+      const it = FALSE_FRIENDS_DICT[inlineFFIdx];
+      document.getElementById('ff-iq-question').textContent = `O que significa "${it.es}" na frase: "${it.exEs}"?`;
+      document.getElementById('ff-iq-feedback').classList.add('hidden');
+      const opts = [{ t: it.pt, ok: true }, { t: it.looks, ok: false }].sort(() => Math.random() - 0.5);
+      document.getElementById('ff-iq-options').innerHTML = opts.map(o => `
+        <button onclick="checkInlineFFQuiz(${o.ok})" class="p-3 rounded-xl bg-sand-50 hover:bg-terracotta-50 border border-sand-200 font-bold text-sm text-deepblue-900">${o.t}</button>
+      `).join('');
+    }
+
+    function checkInlineFFQuiz(ok) {
+      const it = FALSE_FRIENDS_DICT[inlineFFIdx];
+      const fb = document.getElementById('ff-iq-feedback');
+      fb.classList.remove('hidden', 'bg-olive-100', 'text-olive-700', 'bg-rose-100', 'text-rose-800');
+      if (ok) {
+        fb.classList.add('bg-olive-100', 'text-olive-700');
+        fb.textContent = `✅ Correto! "${it.es}" = ${it.pt}. (+10 XP)`;
+        addXP(10, `Falso amigo: ${it.es}`);
+      } else {
+        fb.classList.add('bg-rose-100', 'text-rose-800');
+        fb.textContent = `❌ Cuidado! "${it.es}" significa ${it.pt} (e não "${it.looks}").`;
+        logErrorItem(`ff_${it.es}`, it.es, `Significa "${it.pt}".`, 'Falsos Amigos');
+      }
+    }
+
+    /* =========================================================================
+       12. ÁREA 08: MEU PROGRESSO
+       ========================================================================= */
+    function updateDailyGoalTarget(val) {
+      state.dailyTarget = Number(val);
+      saveState();
+      showToast(`Meta diária ajustada para ${val} atividades!`, 'success');
+    }
+
+    function renderProgressPage() {
+      document.getElementById('prog-xp').textContent = state.xp;
+      document.getElementById('prog-streak').textContent = state.streak;
+      document.getElementById('prog-lessons').textContent = state.completedLessons.length;
+      document.getElementById('daily-goal-select').value = String(state.dailyTarget);
+
+      const mastered = Object.values(state.fcStatus).filter(s => s === 'mastered').length;
+      document.getElementById('prog-mastered').textContent = mastered;
+
+      let lvl = 'Nível Explorador (A1)';
+      if (state.xp >= 150) lvl = 'Nível Viajante (A2)';
+      if (state.xp >= 450) lvl = 'Nível Conversador (B1)';
+      if (state.xp >= 900) lvl = 'Nível Fluente (B2+)';
+      document.getElementById('prog-level').textContent = lvl;
+
+      const hm = document.getElementById('prog-heatmap');
+      hm.innerHTML = '';
+      for (let i = 27; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().split('T')[0];
+        const count = state.activityMap[key] || 0;
+        let cls = 'bg-sand-100 border-sand-200';
+        if (count >= 1 && count <= 3) cls = 'bg-terracotta-100 border-terracotta-200';
+        else if (count >= 4 && count <= 8) cls = 'bg-terracotta-500 border-terracotta-600';
+        else if (count >= 9) cls = 'bg-terracotta-700 border-terracotta-800';
+        const cell = document.createElement('div');
+        cell.className = `aspect-square rounded-md border ${cls}`;
+        cell.title = `${d.toLocaleDateString('pt-BR')}: ${count} atividades`;
+        hm.appendChild(cell);
+      }
+
+      const hist = document.getElementById('prog-history-list');
+      hist.innerHTML = state.historyLog.length === 0
+        ? `<p class="text-stone-400 italic">Suas atividades recentes aparecerão aqui.</p>`
+        : state.historyLog.map(h => `
+            <div class="flex items-center justify-between py-1.5 border-b border-sand-100">
+              <span class="font-medium text-deepblue-800">${h.text}</span>
+              <span class="text-stone-400 text-[11px]">${h.time}</span>
+            </div>
+          `).join('');
+
+      const errBox = document.getElementById('prog-error-list');
+      const clearBtn = document.getElementById('btn-clear-err-nb');
+      if (state.errorNotebook.length === 0) {
+        clearBtn.classList.add('hidden');
+        errBox.innerHTML = `
+          <div class="col-span-full bg-sand-50 border border-dashed border-sand-200 rounded-2xl p-6 text-center">
+            <p class="text-sm font-bold text-deepblue-800">Nenhum erro pendente! 🎉</p>
+            <p class="text-xs text-stone-500 mt-1">Seus erros nos jogos, gramática ou falsos amigos são salvos aqui automaticamente.</p>
+          </div>
+        `;
+      } else {
+        clearBtn.classList.remove('hidden');
+        errBox.innerHTML = state.errorNotebook.map(err => `
+          <div class="bg-sand-50 border border-sand-200 rounded-2xl p-4 flex flex-col justify-between gap-3">
+            <div>
+              <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-rose-100 text-rose-700">${err.tag}</span>
+              <h4 class="font-serif font-bold text-base text-deepblue-900 mt-1.5">${err.title}</h4>
+              <p class="text-xs text-stone-600 mt-1">${err.detail}</p>
+            </div>
+            <button onclick="removeErrorItem('${err.id}')" class="w-full py-1.5 rounded-xl bg-white border border-sand-200 hover:bg-olive-50 hover:text-olive-700 text-xs font-bold text-deepblue-800 transition">
+              ✓ Marcar como revisado
+            </button>
+          </div>
+        `).join('');
+      }
+    }
+
+    /* =========================================================================
+       13. INICIALIZAÇÃO
+       ========================================================================= */
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+    });
+
+    document.getElementById('accent-select').addEventListener('change', (e) => {
+      state.accent = e.target.value;
+      saveState();
+      testGlobalVoice();
+    });
+
+    document.getElementById('conj-search-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') runConjugator();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initFirebaseFromStoredConfig();
+      document.getElementById('accent-select').value = state.accent;
+      refreshAllCounters();
+
+      renderTracksSidebar();
+      openLesson('t1_1');
+      populateFlashcardCategorySelect();
+      renderVocabBank();
+      filterFlashcards();
+      renderGrammarTopicsMenu();
+      renderGrammarContent();
+      renderConjugatorQuickPills();
+      runConjugator();
+      initGame1();
+      restartConversation();
+      renderPronunciationModule();
+      renderFalseFriendsTable();
+      renderProgressPage();
+
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
