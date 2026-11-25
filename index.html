@@ -244,52 +244,19 @@ service cloud.firestore {
           </div>
         </div>
       </div>
-      <div id="modal-ff-feedback" class="hidden p-4 rounded-2xl text-sm"></div>
+
+      <!-- Linha 2: Barra de Navegação com as 8 Áreas Principais -->
+      <nav class="flex items-center gap-1.5 py-2.5 overflow-x-auto no-scrollbar" aria-label="Menu Principal">
+        <button data-tab="aprender" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-terracotta-500 text-white shrink-0 transition">01. Aprender</button>
+        <button data-tab="vocabulario" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-deepblue-800 hover:bg-sand-100 shrink-0 transition">02. Vocabulário</button>
+        <button data-tab="gramatica" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-deepblue-800 hover:bg-sand-100 shrink-0 transition">03. Gramática</button>
+        <button data-tab="jogos" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-deepblue-800 hover:bg-sand-100 shrink-0 transition">04. Jogos (7)</button>
+        <button data-tab="conversacao" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-deepblue-800 hover:bg-sand-100 shrink-0 transition">05. Conversação</button>
+        <button data-tab="pronuncia" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-deepblue-800 hover:bg-sand-100 shrink-0 transition">06. Pronúncia</button>
+        <button data-tab="falsos-amigos" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-deepblue-800 hover:bg-sand-100 shrink-0 transition">07. Falsos Amigos</button>
+        <button data-tab="progresso" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-deepblue-800 hover:bg-sand-100 shrink-0 transition">08. Meu Progresso</button>
+      </nav>
     </div>
-  </div>
-
-  <!-- Modal de Backup, Exportação & Restauração de Progresso -->
-  <div id="backup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-deepblue-900/60 backdrop-blur-xs p-4">
-    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-sand-200 space-y-5 relative max-h-[90vh] overflow-y-auto">
-      <button onclick="closeBackupModal()" class="absolute top-5 right-5 p-2 rounded-full bg-sand-100 hover:bg-sand-200 text-deepblue-800 transition">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-
-      <div>
-        <span class="px-3 py-1 rounded-full bg-deepblue-50 text-deepblue-800 text-xs font-bold uppercase tracking-wider">💾 Persistência & Backup</span>
-        <h3 class="font-serif text-2xl sm:text-3xl font-bold text-deepblue-900 mt-2">Salvar & Restaurar Progresso</h3>
-        <p id="backup-mode-explanation" class="text-xs text-stone-600 mt-1 leading-relaxed"></p>
-      </div>
-
-      <!-- Opção 1: Arquivo JSON -->
-      <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200 space-y-3">
-        <p class="text-xs font-bold uppercase tracking-wider text-deepblue-900">1. Arquivo de Backup (.JSON)</p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <button onclick="exportProgressJSON()" class="py-3 px-4 rounded-xl bg-terracotta-500 hover:bg-terracotta-600 text-white text-xs font-bold flex items-center justify-center gap-2 transition">
-            <i data-lucide="download" class="w-4 h-4"></i> Exportar Progresso (.JSON)
-          </button>
-          <label class="py-3 px-4 rounded-xl bg-white hover:bg-sand-100 border border-sand-200 text-deepblue-900 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition">
-            <i data-lucide="upload" class="w-4 h-4"></i> Importar Arquivo (.JSON)
-            <input type="file" id="import-json-input" accept=".json,application/json" onchange="importProgressJSON(event)" class="hidden">
-          </label>
-        </div>
-      </div>
-
-      <!-- Opção 2: Código Base64 Rápido (Copiar / Colar) -->
-      <div class="bg-sand-50 p-4 rounded-2xl border border-sand-200 space-y-3">
-        <div class="flex items-center justify-between">
-          <p class="text-xs font-bold uppercase tracking-wider text-deepblue-900">2. Código de Progresso (Copiar / Colar)</p>
-          <button onclick="copyProgressCode()" class="px-3 py-1.5 rounded-lg bg-deepblue-800 hover:bg-deepblue-900 text-white text-xs font-bold flex items-center gap-1.5 transition">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Meu Código
-          </button>
-        </div>
-        <textarea id="progress-code-textarea" rows="3" placeholder="Seu código gerado aparecerá aqui, ou cole um código salvo anteriormente para restaurar..." class="w-full p-3 rounded-xl bg-white border border-sand-200 text-xs font-mono text-deepblue-900 focus:outline-none focus:ring-2 focus:ring-terracotta-500"></textarea>
-        <button onclick="restoreFromProgressCode()" class="w-full py-2.5 px-4 rounded-xl bg-olive-600 hover:bg-olive-700 text-white text-xs font-bold transition">
-          ✓ Restaurar a partir do Código Colado
-        </button>
-      </div>
-    </div>
-  </div>
   </header>
 
   <!-- ======================================================================= -->
@@ -299,21 +266,22 @@ service cloud.firestore {
 
     <!-- ===================================================================== -->
     <!-- 01. APRENDER (4 TRILHAS & LIÇÕES INTERATIVAS)                         -->
-        <div class="flex items-center gap-2 flex-wrap">
-          <button onclick="openCloudModal()" class="px-3.5 py-2 rounded-xl bg-deepblue-800 hover:bg-deepblue-900 text-white text-xs font-bold transition">
-            ☁️ Configurar Nuvem (Google)
-          </button>
-          <button onclick="openBackupModal()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-sand-100 text-deepblue-800 border border-sand-200 text-xs font-bold transition">
-            💾 Backup JSON / Código
-          </button>
-          <div class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-sand-200">
-            <label for="daily-goal-select" class="text-xs font-bold text-stone-600">Meta diária:</label>
-            <select id="daily-goal-select" onchange="updateDailyGoalTarget(this.value)" class="text-xs font-bold text-terracotta-600 bg-transparent focus:outline-none">
-              <option value="5">5 atividades</option>
-              <option value="10" selected>10 atividades</option>
-              <option value="20">20 atividades</option>
-              <option value="30">30 atividades</option>
-            </select>
+    <!-- ===================================================================== -->
+    <section id="tab-aprender" class="tab-section space-y-6">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-sand-200 pb-5">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-terracotta-600 bg-terracotta-50 px-3 py-1 rounded-full">01 • Trilhas Guiadas</span>
+          <h2 class="font-serif text-3xl font-bold text-deepblue-900 mt-2">Aprender Espanhol Passo a Passo</h2>
+          <p class="text-sm text-stone-600 mt-1">Conclua lições curtas com áudio nativo, frases reais e micro-desafios para desbloquear XP.</p>
+        </div>
+
+        <div class="bg-white px-4 py-3 rounded-2xl border border-sand-200 shadow-2xs min-w-[240px]">
+          <div class="flex items-center justify-between text-xs font-bold mb-1.5">
+            <span class="text-stone-500">Meta Diária</span>
+            <span class="text-terracotta-600"><span id="daily-goal-count">0</span> / <span id="daily-goal-target">10</span></span>
+          </div>
+          <div class="w-full h-2.5 bg-sand-100 rounded-full overflow-hidden">
+            <div id="daily-goal-bar" class="h-full bg-terracotta-500 rounded-full transition-all duration-500" style="width: 0%"></div>
           </div>
         </div>
       </div>
@@ -881,14 +849,46 @@ service cloud.firestore {
           <p class="text-sm text-stone-600 mt-1">Acompanhe suas métricas diárias, histórico de atividades e o Caderno de Erros Automático.</p>
         </div>
 
-        <div class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-sand-200">
-          <label for="daily-goal-select" class="text-xs font-bold text-stone-600">Meta diária:</label>
-          <select id="daily-goal-select" onchange="updateDailyGoalTarget(this.value)" class="text-xs font-bold text-terracotta-600 bg-transparent focus:outline-none">
-            <option value="5">5 atividades</option>
-            <option value="10" selected>10 atividades</option>
-            <option value="20">20 atividades</option>
-            <option value="30">30 atividades</option>
-          </select>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openCloudModal()" class="px-3.5 py-2 rounded-xl bg-deepblue-800 hover:bg-deepblue-900 text-white text-xs font-bold transition">
+            ☁️ Configurar Nuvem (Google)
+          </button>
+          <button onclick="openBackupModal()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-sand-100 text-deepblue-800 border border-sand-200 text-xs font-bold transition">
+            💾 Backup JSON / Código
+          </button>
+          <div class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-sand-200">
+            <label for="daily-goal-select" class="text-xs font-bold text-stone-600">Meta diária:</label>
+            <select id="daily-goal-select" onchange="updateDailyGoalTarget(this.value)" class="text-xs font-bold text-terracotta-600 bg-transparent focus:outline-none">
+              <option value="5">5 atividades</option>
+              <option value="10" selected>10 atividades</option>
+              <option value="20">20 atividades</option>
+              <option value="30">30 atividades</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards de Resumo de Progresso -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-3xl border border-sand-200 shadow-2xs">
+          <span class="text-xs font-bold uppercase text-stone-400">Experiência Total</span>
+          <p class="font-serif text-3xl font-bold text-terracotta-600 mt-1"><span id="prog-xp">0</span> XP</p>
+          <p id="prog-level" class="text-xs font-semibold text-deepblue-800 mt-1">Nível Explorador (A1)</p>
+        </div>
+        <div class="bg-white p-5 rounded-3xl border border-sand-200 shadow-2xs">
+          <span class="text-xs font-bold uppercase text-stone-400">Ofensiva Atual</span>
+          <p class="font-serif text-3xl font-bold text-deepblue-900 mt-1">🔥 <span id="prog-streak">1</span> dias</p>
+          <p class="text-xs text-stone-500 mt-1">Estude todo dia para manter</p>
+        </div>
+        <div class="bg-white p-5 rounded-3xl border border-sand-200 shadow-2xs">
+          <span class="text-xs font-bold uppercase text-stone-400">Lições Concluídas</span>
+          <p class="font-serif text-3xl font-bold text-olive-700 mt-1"><span id="prog-lessons">0</span> / 12</p>
+          <p class="text-xs text-stone-500 mt-1">Trilhas guiadas</p>
+        </div>
+        <div class="bg-white p-5 rounded-3xl border border-sand-200 shadow-2xs">
+          <span class="text-xs font-bold uppercase text-stone-400">Flashcards Dominados</span>
+          <p class="font-serif text-3xl font-bold text-deepblue-900 mt-1"><span id="prog-mastered">0</span></p>
+          <p class="text-xs text-stone-500 mt-1">Marcados como "Fácil"</p>
         </div>
       </div>
 
@@ -1380,7 +1380,663 @@ service cloud.firestore {
       renderProgressPage();
     }
 
-    function addXP(amount, description) {
+    /* =========================================================================
+       4. MOTOR DE ÁUDIO (WEB SPEECH API COM FALLBACK), XP, TOAST & NAVEGAÇÃO
+       ========================================================================= */
+    let availableSpanishVoices = [];
+
+    function loadSpanishVoices() {
+      if (!('speechSynthesis' in window)) return;
+      const all = window.speechSynthesis.getVoices();
+      availableSpanishVoices = all.filter(v => v.lang && v.lang.toLowerCase().startsWith('es'));
+    }
+
+    if ('speechSynthesis' in window) {
+      loadSpanishVoices();
+      window.speechSynthesis.onvoiceschanged = loadSpanishVoices;
+      setTimeout(loadSpanishVoices, 400);
+      setTimeout(loadSpanishVoices, 1500);
+    }
+
+    function speakText(text, rate = 1.0, triggerBtn = null) {
+      if (!text || !('speechSynthesis' in window)) {
+        showToast('Síntese de voz não suportada neste navegador.', 'warning');
+        return;
+      }
+      try {
+        window.speechSynthesis.cancel();
+        loadSpanishVoices();
+        const utter = new SpeechSynthesisUtterance(text);
+        const targetLang = state.accent || 'es-ES';
+        utter.lang = targetLang;
+        utter.rate = rate;
+
+        if (availableSpanishVoices.length > 0) {
+          const exact = availableSpanishVoices.find(v => v.lang.toLowerCase() === targetLang.toLowerCase());
+          const regionPrefix = targetLang.split('-')[0].toLowerCase();
+          const fallback = availableSpanishVoices.find(v => v.lang.toLowerCase().startsWith(regionPrefix)) || availableSpanishVoices[0];
+          utter.voice = exact || fallback;
+        }
+
+        if (triggerBtn) {
+          document.querySelectorAll('.speaking-pulse').forEach(el => el.classList.remove('speaking-pulse'));
+          triggerBtn.classList.add('speaking-pulse');
+          utter.onend = () => triggerBtn.classList.remove('speaking-pulse');
+          utter.onerror = () => triggerBtn.classList.remove('speaking-pulse');
+        }
+
+        window.speechSynthesis.speak(utter);
+      } catch (e) {
+        console.error('Erro TTS:', e);
+      }
+    }
+
+    function testGlobalVoice(btn = null) {
+      const samples = {
+        'es-ES': '¡Hola! Bienvenido a Estudio Español desde Madrid.',
+        'es-MX': '¡Hola! Qué gusto saludarte desde la Ciudad de México.',
+        'es-AR': '¡Hola! ¿Cómo andás? Bienvenido desde Buenos Aires.'
+      };
+      speakText(samples[state.accent] || samples['es-ES'], 1.0, btn);
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      const colors = {
+        success: 'bg-olive-700 text-white border-olive-600',
+        warning: 'bg-terracotta-600 text-white border-terracotta-500',
+        info: 'bg-deepblue-800 text-white border-deepblue-700'
+      };
+      el.className = `px-4 py-3 rounded-2xl shadow-lg border text-xs sm:text-sm font-semibold pointer-events-auto transition-all duration-300 ${colors[type] || colors.info}`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 3200);
+    }
+
+    function refreshAllCounters() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('top-streak').textContent = state.streak;
+      document.getElementById('top-xp').textContent = state.xp;
+      document.getElementById('daily-goal-count').textContent = state.todayCount;
+      document.getElementById('daily-goal-target').textContent = state.dailyTarget;
+      const pct = Math.min(100, Math.round((state.todayCount / Math.max(1, state.dailyTarget)) * 100));
+      document.getElementById('daily-goal-bar').style.width = pct + '%';
+
+      const fcBadge = document.getElementById('fc-saved-badge');
+      if (fcBadge) fcBadge.textContent = state.savedVocabIds.length;
+      const vocabCounter = document.getElementById('vocab-total-counter');
+      if (vocabCounter) vocabCounter.textContent = ALL_VOCAB.length;
+      const ffBadge = document.getElementById('ff-count-badge');
+      if (ffBadge) ffBadge.textContent = FALSE_FRIENDS_DICT.length;
+
+      if (!state.activityMap[today]) state.activityMap[today] = 0;
+    }
+
+    function addXP(amount, description = '') {
+      const today = new Date().toISOString().split('T')[0];
+      state.xp += amount;
+      state.todayCount += 1;
+      state.activityMap[today] = (state.activityMap[today] || 0) + 1;
+      if (description) {
+        const nowStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        state.historyLog.unshift({ text: `${description} (+${amount} XP)`, time: nowStr });
+        if (state.historyLog.length > 30) state.historyLog.pop();
+      }
+      saveState();
+      if (description) showToast(`+${amount} XP • ${description}`, 'success');
+    }
+
+    function logErrorItem(id, title, detail, tag) {
+      if (!state.errorNotebook.some(e => e.id === id)) {
+        state.errorNotebook.unshift({ id, title, detail, tag });
+        saveState();
+      }
+    }
+
+    function removeErrorItem(id) {
+      state.errorNotebook = state.errorNotebook.filter(e => e.id !== id);
+      saveState();
+      renderProgressPage();
+      showToast('Item removido do Caderno de Erros!', 'success');
+    }
+
+    function clearErrorNotebook() {
+      state.errorNotebook = [];
+      saveState();
+      renderProgressPage();
+      showToast('Caderno de Erros limpo.', 'info');
+    }
+
+    function resetAllAppData() {
+      state = {
+        xp: 0, streak: 1, lastDate: new Date().toISOString().split('T')[0],
+        todayCount: 0, dailyTarget: 10, accent: 'es-ES', activityMap: {},
+        completedLessons: [], savedVocabIds: ['v1', 'v2', 'v3'], fcStatus: {},
+        errorNotebook: [], historyLog: [], updatedAt: Date.now()
+      };
+      saveState(true);
+      refreshEntireUI();
+      showToast('Progresso zerado com sucesso.', 'info');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+      const target = document.getElementById(`tab-${tabName}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabName) {
+          btn.className = 'tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-terracotta-500 text-white shrink-0 transition';
+        } else {
+          btn.className = 'tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-deepblue-800 hover:bg-sand-100 shrink-0 transition';
+        }
+      });
+      if (tabName === 'progresso') renderProgressPage();
+    }
+
+    /* =========================================================================
+       5. BANCO DE DADOS COMPLETO (TRILHAS, VOCABULÁRIO, GRAMÁTICA, VERBOS, JOGOS)
+       ========================================================================= */
+    const LEARNING_TRACKS = [
+      {
+        id: 'tr1', title: 'Trilha 1: Primeiros Passos & Sobrevivência',
+        lessons: [
+          {
+            id: 't1_1', title: 'Saudações, Apresentações & Cortesia',
+            intro: 'Em espanhol, a pontuação de pergunta (¿) e exclamação (¡) também aparece invertida no início da frase. Além disso, "apellido" significa sobrenome!',
+            phrases: [
+              { es: '¡Hola! Mucho gusto en conocerte.', pt: 'Olá! Muito prazer em conhecê-lo(a).' },
+              { es: '¿Cuál es tu nombre y tu apellido?', pt: 'Qual é o seu nome e o seu sobrenome?' },
+              { es: 'Disculpa, ¿me puedes ayudar por favor?', pt: 'Com licença, pode me ajudar por favor?' },
+              { es: 'Muchas gracias por tu amabilidad.', pt: 'Muito obrigado pela sua gentileza.' }
+            ],
+            quiz: { q: 'Como se pergunta "Qual é o seu sobrenome?" em espanhol?', opts: ['¿Cuál es tu apodo?', '¿Cuál es tu apellido?', '¿Cuál es tu sobrenombre?'], ans: 1, exp: '"Apellido" é sobrenome em espanhol. "Apodo" significa apelido.' }
+          },
+          {
+            id: 't1_2', title: 'Números, Horas & Dias da Semana',
+            intro: 'Para dizer as horas em espanhol, usamos o artigo feminino: "Es la una" (1h) ou "Son las tres" (3h).',
+            phrases: [
+              { es: '¿Qué hora es? Son las dos y media.', pt: 'Que horas são? São duas e meia.' },
+              { es: 'La reunión empieza el lunes a las nueve.', pt: 'A reunião começa na segunda-feira às nove.' },
+              { es: 'Hoy es miércoles veinticinco de noviembre.', pt: 'Hoje é quarta-feira, vinte e cinco de novembro.' }
+            ],
+            quiz: { q: 'Qual frase está correta para dizer "São três horas"?', opts: ['Son los tres.', 'Son las tres.', 'Es las tres.'], ans: 1, exp: 'Horas em espanhol usam o artigo feminino plural "las" (exceto 1h: "Es la una").' }
+          },
+          {
+            id: 't1_3', title: 'No Restaurante & Pedindo Comida',
+            intro: 'Cuidado com "vaso" (significa copo!) e "exquisito" (significa delicioso, maravilhoso!).',
+            phrases: [
+              { es: 'Quisiera una mesa para dos personas, por favor.', pt: 'Eu gostaria de uma mesa para duas pessoas, por favor.' },
+              { es: 'Tráigame un vaso de agua sin gas, por favor.', pt: 'Traga-me um copo de água sem gás, por favor.' },
+              { es: '¡Esta paella está verdaderamente exquisita!', pt: 'Esta paella está verdadeiramente deliciosa!' }
+            ],
+            quiz: { q: 'Se um espanhol diz "La comida está exquisita", ele quer dizer:', opts: ['A comida está estranha.', 'A comida está deliciosa.', 'A comida está cara.'], ans: 1, exp: '"Exquisito" em espanhol significa delicioso, refinado.' }
+          }
+        ]
+      },
+      {
+        id: 'tr2', title: 'Trilha 2: Vida Cotidiana & Viagens',
+        lessons: [
+          {
+            id: 't2_1', title: 'No Aeroporto & Alfândega',
+            intro: 'Vocabulário indispensável para embarque, bagagem ("equipaje") e passaporte.',
+            phrases: [
+              { es: '¿Dónde está la puerta de embarque número doce?', pt: 'Onde fica o portão de embarque número doze?' },
+              { es: 'Solo llevo equipaje de mano.', pt: 'Só levo bagagem de mão.' },
+              { es: 'Mi vuelo tiene un retraso de cuarenta minutos.', pt: 'Meu voo tem um atraso de quarenta minutos.' }
+            ],
+            quiz: { q: 'Como se diz "bagagem de mão" em espanhol?', opts: ['Equipaje de mano', 'Bagaje de mano', 'Maleta chica'], ans: 0, exp: '"Equipaje" é bagagem em espanhol.' }
+          },
+          {
+            id: 't2_2', title: 'Pedindo Direções na Cidade',
+            intro: 'Em espanhol, quarteirão é "manzana" ou "cuadra", e virar é "girar" ou "doblar".',
+            phrases: [
+              { es: 'Sigue todo recto dos cuadras y gira a la izquierda.', pt: 'Siga reto por dois quarteirões e vire à esquerda.' },
+              { es: 'La estación de metro está enfrente del museo.', pt: 'A estação de metrô fica em frente ao museu.' },
+              { es: '¿Está muy lejos de aquí andando?', pt: 'É muito longe daqui a pé?' }
+            ],
+            quiz: { q: 'O que significa "Sigue todo recto"?', opts: ['Vire à direita', 'Siga sempre reto', 'Volte para trás'], ans: 1, exp: '"Seguir todo recto" significa seguir em frente / reto.' }
+          },
+          {
+            id: 't2_3', title: 'Compras, Preços & Pagamento',
+            intro: 'Ao pagar com cartão, "tarjeta de crédito/débito" e dinheiro em espécie é "en efectivo".',
+            phrases: [
+              { es: '¿Cuánto cuesta esta chaqueta de cuero?', pt: 'Quanto custa esta jaqueta de couro?' },
+              { es: '¿Puedo pagar con tarjeta o solo en efectivo?', pt: 'Posso pagar com cartão ou só em dinheiro?' },
+              { es: 'Me lo llevo, muchas gracias.', pt: 'Vou levar, muito obrigado.' }
+            ],
+            quiz: { q: 'Como se diz "pagar em dinheiro vivo"?', opts: ['Pagar en dinero', 'Pagar en efectivo', 'Pagar en moneda'], ans: 1, exp: '"En efectivo" significa em espécie / dinheiro vivo.' }
+          }
+        ]
+      },
+      {
+        id: 'tr3', title: 'Trilha 3: Espanhol sem Portunhol',
+        lessons: [
+          {
+            id: 't3_1', title: 'Heterogenéricos: O Gênero que Muda',
+            intro: 'Muitas palavras trocam de masculino para feminino entre português e espanhol: el puente (a ponte), la leche (o leite), la nariz (o nariz), el color (a cor).',
+            phrases: [
+              { es: 'Me gusta tomar la leche caliente por la mañana.', pt: 'Gosto de tomar o leite quente de manhã.' },
+              { es: 'El puente nuevo cruza todo el río.', pt: 'A ponte nova atravessa todo o rio.' },
+              { es: 'Tengo la nariz tapada por el resfriado.', pt: 'Estou com o nariz entupido por causa do resfriado.' }
+            ],
+            quiz: { q: 'Qual é o artigo correto para "leche" e "puente"?', opts: ['El leche / La puente', 'La leche / El puente', 'La leche / La puente'], ans: 1, exp: '"La leche" é feminino e "El puente" é masculino em espanhol.' }
+          },
+          {
+            id: 't3_2', title: 'Muy vs. Mucho sem Dúvidas',
+            intro: 'Regra de ouro: "Muy" vem antes de adjetivos e advérbios (muy bueno, muy lejos). "Mucho" acompanha substantivos ou verbos (mucho trabajo, estudio mucho).',
+            phrases: [
+              { es: 'Hoy hace mucho calor en la ciudad.', pt: 'Hoje faz muito calor na cidade.' },
+              { es: 'Este libro es muy interesante y fácil de leer.', pt: 'Este livro é muito interessante e fácil de ler.' },
+              { es: 'Trabajamos mucho durante toda la semana.', pt: 'Trabalhamos muito durante toda a semana.' }
+            ],
+            quiz: { q: 'Complete: "Tengo _____ hambre y estoy _____ cansado."', opts: ['muy / mucho', 'mucha / muy', 'mucho / muy'], ans: 1, exp: '"Hambre" é substantivo feminino (mucha hambre); "cansado" é adjetivo (muy cansado).' }
+          },
+          {
+            id: 't3_3', title: 'Por vs. Para na Prática',
+            intro: '"Por" indica causa, motivo, meio ou lugar aproximado. "Para" indica destino, finalidade ou prazo.',
+            phrases: [
+              { es: 'Estudio español para viajar por Sudamérica.', pt: 'Estudo espanhol para viajar pela América do Sul.' },
+              { es: 'Gracias por venir a mi fiesta de cumpleaños.', pt: 'Obrigado por vir à minha festa de aniversário.' },
+              { es: 'Este informe es para el viernes sin falta.', pt: 'Este relatório é para sexta-feira sem falta.' }
+            ],
+            quiz: { q: 'Complete: "Te llamo _____ teléfono _____ invitarte a cenar."', opts: ['por / para', 'para / por', 'por / por'], ans: 0, exp: '"Por teléfono" (meio) e "para invitarte" (finalidade).' }
+          }
+        ]
+      },
+      {
+        id: 'tr4', title: 'Trilha 4: Fluência & Cultura Hispânica',
+        lessons: [
+          {
+            id: 't4_1', title: 'Expressões Idiomáticas do Dia a Dia',
+            intro: 'Nativos usam expressões como "estar en las nubes" (distraído), "costar un ojo de la cara" (muito caro) e "tomar el pelo" (zoar/brincar).',
+            phrases: [
+              { es: 'No me tomes el pelo, dime la verdad.', pt: 'Não me zoe / não tire sarro de mim, me diga a verdade.' },
+              { es: 'Ese coche deportivo cuesta un ojo de la cara.', pt: 'Esse carro esportivo custa os olhos da cara.' },
+              { es: '¡Qué buena onda tienes siempre!', pt: 'Que energia boa você sempre tem!' }
+            ],
+            quiz: { q: 'O que significa "No me tomes el pelo"?', opts: ['Não corte meu cabelo', 'Não tire sarro / não brinque comigo', 'Não me segure'], ans: 1, exp: '"Tomar el pelo" significa pregar uma peça ou zoar alguém.' }
+          },
+          {
+            id: 't4_2', title: 'Espanha vs. México vs. Argentina',
+            intro: 'O espanhol muda de sabor conforme o país: carro pode ser coche (ES), carro (MX) ou auto (AR); ônibus é autobús (ES), camión (MX) ou colectivo (AR).',
+            phrases: [
+              { es: 'En Madrid quedamos a tomar unas cañas.', pt: 'Em Madri combinamos de tomar uns chopes.' },
+              { es: 'En México todo está bien padre y chido.', pt: 'No México tudo é muito legal e bacana.' },
+              { es: 'En Buenos Aires tomamos el colectivo juntos.', pt: 'Em Buenos Aires pegamos o ônibus juntos.' }
+            ],
+            quiz: { q: 'Como se diz "ônibus" na Argentina?', opts: ['Camión', 'Colectivo', 'Guagua'], ans: 1, exp: 'Na Argentina usa-se "colectivo" (no México, "camión"; no Caribe, "guagua").' }
+          },
+          {
+            id: 't4_3', title: 'Reuniões de Trabalho & Negócios',
+            intro: 'Lembre-se: escritório é "oficina" e pasta/arquivo é "carpeta".',
+            phrases: [
+              { es: 'Te envío la carpeta con el presupuesto actualizado.', pt: 'Te envio a pasta com o orçamento atualizado.' },
+              { es: 'Llegué temprano a la oficina para preparar la presentación.', pt: 'Cheguei cedo ao escritório para preparar a apresentação.' },
+              { es: 'Quedamos a la espera de tus comentarios.', pt: 'Ficamos no aguardo dos seus comentários.' }
+            ],
+            quiz: { q: 'Onde você trabalha no escritório em espanhol?', opts: ['En el escritorio', 'En la oficina', 'En el taller'], ans: 1, exp: '"Oficina" é escritório; "escritorio" é apenas a mesa de trabalho.' }
+          }
+        ]
+      }
+    ];
+
+    let activeLessonId = 't1_1';
+
+    function renderTracksSidebar() {
+      const box = document.getElementById('tracks-container');
+      if (!box) return;
+      box.innerHTML = LEARNING_TRACKS.map(tr => `
+        <div class="bg-white rounded-3xl border border-sand-200 p-5 shadow-2xs space-y-3">
+          <h3 class="font-serif font-bold text-base text-deepblue-900">${tr.title}</h3>
+          <div class="space-y-2">
+            ${tr.lessons.map(ls => {
+              const done = state.completedLessons.includes(ls.id);
+              const active = ls.id === activeLessonId;
+              return `
+                <button onclick="openLesson('${ls.id}')" class="w-full text-left p-3.5 rounded-2xl border transition flex items-center justify-between gap-2 ${
+                  active ? 'bg-terracotta-50 border-terracotta-500 text-terracotta-900' : 'bg-sand-50/70 border-sand-200 hover:bg-sand-100 text-deepblue-800'
+                }">
+                  <span class="text-xs sm:text-sm font-bold">${ls.title}</span>
+                  <span class="text-xs font-bold shrink-0 ${done ? 'text-olive-700' : 'text-stone-400'}">${done ? '✅ Concluída' : 'Abrir →'}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openLesson(lessonId) {
+      activeLessonId = lessonId;
+      renderTracksSidebar();
+      let foundTrack = null, foundLesson = null;
+      for (const tr of LEARNING_TRACKS) {
+        const ls = tr.lessons.find(l => l.id === lessonId);
+        if (ls) { foundTrack = tr; foundLesson = ls; break; }
+      }
+      if (!foundLesson) return;
+
+      document.getElementById('lesson-track-badge').textContent = foundTrack.title;
+      document.getElementById('lesson-title').textContent = foundLesson.title;
+      document.getElementById('lesson-intro').textContent = foundLesson.intro;
+      const isDone = state.completedLessons.includes(foundLesson.id);
+      const pill = document.getElementById('lesson-status-pill');
+      pill.textContent = isDone ? '✅ Concluída' : 'Em andamento';
+      pill.className = isDone
+        ? 'px-3 py-1 rounded-full text-xs font-bold bg-olive-100 text-olive-700 shrink-0'
+        : 'px-3 py-1 rounded-full text-xs font-bold bg-sand-100 text-deepblue-800 shrink-0';
+
+      document.getElementById('lesson-phrases-list').innerHTML = foundLesson.phrases.map(p => `
+        <div class="p-4 rounded-2xl bg-sand-50 border border-sand-200 flex items-center justify-between gap-3">
+          <div>
+            <p class="font-bold text-sm sm:text-base text-deepblue-900">${p.es}</p>
+            <p class="text-xs text-stone-500 mt-0.5">${p.pt}</p>
+          </div>
+          <button onclick="speakText('${p.es.replace(/'/g, "\\'")}', 1.0, this)" class="p-2.5 rounded-xl bg-white border border-sand-200 hover:bg-terracotta-500 hover:text-white text-terracotta-600 transition shrink-0">
+            <i data-lucide="volume-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('lesson-quiz-question').textContent = foundLesson.quiz.q;
+      const fb = document.getElementById('lesson-quiz-feedback');
+      fb.classList.add('hidden');
+      document.getElementById('lesson-quiz-options').innerHTML = foundLesson.quiz.opts.map((opt, idx) => `
+        <button onclick="answerLessonQuiz('${foundLesson.id}', ${idx})" class="w-full text-left p-3 rounded-xl bg-white border border-sand-200 hover:border-terracotta-500 text-xs sm:text-sm font-bold text-deepblue-900 transition">
+          ${opt}
+        </button>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function answerLessonQuiz(lessonId, idx) {
+      let foundLesson = null;
+      for (const tr of LEARNING_TRACKS) {
+        const ls = tr.lessons.find(l => l.id === lessonId);
+        if (ls) { foundLesson = ls; break; }
+      }
+      if (!foundLesson) return;
+      const fb = document.getElementById('lesson-quiz-feedback');
+      fb.classList.remove('hidden', 'bg-olive-100', 'text-olive-700', 'bg-rose-100', 'text-rose-800');
+      if (idx === foundLesson.quiz.ans) {
+        fb.classList.add('bg-olive-100', 'text-olive-700');
+        fb.innerHTML = `🎉 <strong>Correto!</strong> ${foundLesson.quiz.exp}`;
+        if (!state.completedLessons.includes(lessonId)) {
+          state.completedLessons.push(lessonId);
+          addXP(30, `Lição concluída: ${foundLesson.title}`);
+        } else {
+          addXP(10, `Revisão: ${foundLesson.title}`);
+        }
+        renderTracksSidebar();
+        document.getElementById('lesson-status-pill').textContent = '✅ Concluída';
+        document.getElementById('lesson-status-pill').className = 'px-3 py-1 rounded-full text-xs font-bold bg-olive-100 text-olive-700 shrink-0';
+      } else {
+        fb.classList.add('bg-rose-100', 'text-rose-800');
+        fb.innerHTML = `❌ <strong>Ops!</strong> ${foundLesson.quiz.exp}`;
+        logErrorItem(`ls_${lessonId}`, foundLesson.title, foundLesson.quiz.exp, 'Trilha Aprender');
+      }
+    }
+
+    /* VOCABULÁRIO (240+ PALAVRAS E FRASES EM 10 CATEGORIAS) */
+    const VOCAB_CATEGORIES = [
+      'Saudações & Expressões', 'Viagem & Aeroporto', 'Comida & Restaurante',
+      'Casa & Cotidiano', 'Trabalho & Negócios', 'Saúde & Farmácia',
+      'Emoções & Personalidade', 'Compras & Dinheiro', 'Tempo & Natureza', 'Regionalismos'
+    ];
+
+    const RAW_VOCAB_ITEMS = [
+      ['Saudações & Expressões', '¡Buenos días!', 'Bom dia!', '¡Buenos días! ¿Cómo amaneciste hoy?', 'Bom dia! Como você acordou hoje?'],
+      ['Saudações & Expressões', '¡Buenas tardes!', 'Boa tarde!', '¡Buenas tardes! Pasen adelante, por favor.', 'Boa tarde! Podem entrar, por favor.'],
+      ['Saudações & Expressões', '¡Buenas noches!', 'Boa noite!', '¡Buenas noches! Que descanses mucho.', 'Boa noite! Que você descanse bastante.'],
+      ['Saudações & Expressões', '¿Qué tal?', 'Tudo bem? / E aí?', '¡Hola, Carlos! ¿Qué tal tu semana?', 'Oi, Carlos! Como está sua semana?'],
+      ['Saudações & Expressões', 'Mucho gusto', 'Muito prazer', 'Mucho gusto, me llamo Mariana.', 'Muito prazer, meu nome é Mariana.'],
+      ['Saudações & Expressões', 'Con permiso', 'Com licença (ao passar)', 'Con permiso, necesito pasar por aquí.', 'Com licença, preciso passar por aqui.'],
+      ['Saudações & Expressões', 'Disculpa / Perdón', 'Desculpe / Com licença', 'Disculpa, ¿sabes dónde está la plaza?', 'Desculpe, sabe onde fica a praça?'],
+      ['Saudações & Expressões', 'De nada / No hay de qué', 'De nada / Não há de quê', 'Muchas gracias por todo. — ¡No hay de qué!', 'Muito obrigado por tudo. — Não há de quê!'],
+      ['Saudações & Expressões', '¡Enhorabuena!', 'Parabéns! (conquista)', '¡Enhorabuena por tu nuevo trabajo!', 'Parabéns pelo seu novo emprego!'],
+      ['Saudações & Expressões', '¡Feliz cumpleaños!', 'Feliz aniversário!', '¡Feliz cumpleaños! Te deseo lo mejor.', 'Feliz aniversário! Te desejo o melhor.'],
+      ['Saudações & Expressões', '¡Buen provecho!', 'Bom apetite!', 'Ya llegó la comida, ¡buen provecho!', 'A comida já chegou, bom apetite!'],
+      ['Saudações & Expressões', '¡Salud!', 'Saúde! (brinde ou espirro)', 'Levantemos las copas: ¡salud por nosotros!', 'Levantemos as taças: saúde a nós!'],
+      ['Saudações & Expressões', 'Hasta luego', 'Até logo', 'Me voy a clase, hasta luego.', 'Vou para a aula, até logo.'],
+      ['Saudações & Expressões', 'Hasta mañana', 'Até amanhã', 'Nos vemos en la oficina, hasta mañana.', 'Nos vemos no escritório, até amanhã.'],
+      ['Saudações & Expressões', 'Cuídate mucho', 'Cuide-se muito', 'Buen viaje y cuídate mucho.', 'Boa viagem e cuide-se muito.'],
+      ['Saudações & Expressões', 'Por supuesto', 'Com certeza / Claro', '¿Me ayudas con esto? — ¡Por supuesto!', 'Me ajuda com isso? — Com certeza!'],
+      ['Saudações & Expressões', 'No te preocupes', 'Não se preocupe', 'No te preocupes, llegaremos a tiempo.', 'Não se preocupe, chegaremos a tempo.'],
+      ['Saudações & Expressões', 'Vale / De acuerdo', 'Tudo bem / Combinado', '¿Quedamos a las seis? — Vale, perfecto.', 'Combinamos às seis? — Tudo bem, perfeito.'],
+      ['Saudações & Expressões', 'A lo mejor', 'Talvez / Quem sabe', 'A lo mejor llueve esta tarde.', 'Talvez chova hoje à tarde.'],
+      ['Saudações & Expressões', 'Ojalá', 'Tomara que / Oxalá', '¡Ojalá podamos viajar pronto!', 'Tomara que possamos viajar em breve!'],
+      ['Saudações & Expressões', 'Sin embargo', 'No entanto / Porém', 'Es caro; sin embargo, vale la pena.', 'É caro; no entanto, vale a pena.'],
+      ['Saudações & Expressões', 'De repente', 'De repente / Talvez (AR)', 'De repente empezó a nevar en la montaña.', 'De repente começou a nevar na montanha.'],
+      ['Saudações & Expressões', 'Por fin', 'Finalmente / Enfim', '¡Por fin terminamos el proyecto!', 'Finalmente terminamos o projeto!'],
+      ['Saudações & Expressões', 'En seguida', 'Imediatamente / Já já', 'En seguida le traigo su café.', 'Já já trago o seu café.'],
+
+      ['Viagem & Aeroporto', 'El vuelo', 'O voo', 'Nuestro vuelo sale a las diez de la mañana.', 'Nosso voo sai às dez da manhã.'],
+      ['Viagem & Aeroporto', 'La tarjeta de embarque', 'O cartão de embarque', 'Tenga a mano su tarjeta de embarque.', 'Tenha em mãos o seu cartão de embarque.'],
+      ['Viagem & Aeroporto', 'El equipaje', 'A bagagem', '¿Cuántas maletas vas a facturar?', 'Quantas malas você vai despachar?'],
+      ['Viagem & Aeroporto', 'La maleta', 'A mala', 'Mi maleta pesa veinte kilos.', 'Minha mala pesa vinte quilos.'],
+      ['Viagem & Aeroporto', 'La aduana', 'A alfândega', 'Pasamos por la aduana sin problemas.', 'Passamos pela alfândega sem problemas.'],
+      ['Viagem & Aeroporto', 'El pasaporte', 'O passaporte', 'El pasaporte debe estar vigente.', 'O passaporte precisa estar válido.'],
+      ['Viagem & Aeroporto', 'La escala', 'A conexão / escala', 'Hacemos una escala de dos horas en Bogotá.', 'Fazemos uma escala de duas horas em Bogotá.'],
+      ['Viagem & Aeroporto', 'El retraso', 'O atraso', 'El tren llegó con diez minutos de retraso.', 'O trem chegou com dez minutos de atraso.'],
+      ['Viagem & Aeroporto', 'La ventanilla', 'A janela (do avião/guichê)', 'Prefiero asiento junto a la ventanilla.', 'Prefiro assento junto à janela.'],
+      ['Viagem & Aeroporto', 'El pasillo', 'O corredor', 'Camina por el pasillo hasta el fondo.', 'Caminhe pelo corredor até o fundo.'],
+      ['Viagem & Aeroporto', 'El billete / boleto', 'A passagem / bilhete', 'Compré los billetes de tren por internet.', 'Comprei as passagens de trem pela internet.'],
+      ['Viagem & Aeroporto', 'Ida y vuelta', 'Ida e volta', 'Quiero un billete de ida y vuelta a Sevilla.', 'Quero uma passagem de ida e volta para Sevilha.'],
+      ['Viagem & Aeroporto', 'El alojamiento', 'A hospedagem', 'Reservamos un alojamiento cerca del centro.', 'Reservamos uma hospedagem perto do centro.'],
+      ['Viagem & Aeroporto', 'La habitación doble', 'O quarto de casal/duplo', 'Tenemos una habitación doble con vistas.', 'Temos um quarto duplo com vista.'],
+      ['Viagem & Aeroporto', 'El desayuno incluido', 'O café da manhã incluído', 'La tarifa tiene el desayuno incluido.', 'A diária tem o café da manhã incluído.'],
+      ['Viagem & Aeroporto', 'La consigna', 'O guarda-volumes', 'Dejamos las mochilas en la consigna.', 'Deixamos as mochilas no guarda-volumes.'],
+      ['Viagem & Aeroporto', 'La parada de autobús', 'O ponto de ônibus', 'La parada de autobús está a dos cuadras.', 'O ponto de ônibus fica a dois quarteirões.'],
+      ['Viagem & Aeroporto', 'El andén', 'A plataforma (trem/metrô)', 'El tren hacia Toledo sale del andén cuatro.', 'O trem para Toledo sai da plataforma quatro.'],
+      ['Viagem & Aeroporto', 'El mapa', 'O mapa (masculino!)', 'Abrimos el mapa para buscar la catedral.', 'Abrimos o mapa para procurar a catedral.'],
+      ['Viagem & Aeroporto', 'Perderse', 'Perder-se', 'Es fácil perderse en las calles antiguas.', 'É fácil se perder nas ruas antigas.'],
+      ['Viagem & Aeroporto', 'Alquilar un coche', 'Alugar um carro', 'Vamos a alquilar un coche para recorrer la costa.', 'Vamos alugar um carro para percorrer a costa.'],
+      ['Viagem & Aeroporto', 'El seguro de viaje', 'O seguro-viagem', 'Siempre contrato un seguro de viaje internacional.', 'Sempre contrato um seguro-viagem internacional.'],
+      ['Viagem & Aeroporto', 'La frontera', 'A fronteira', 'Cruzamos la frontera entre Chile y Argentina.', 'Atravessamos a fronteira entre Chile e Argentina.'],
+      ['Viagem & Aeroporto', 'El recuerdo / souvenir', 'A lembrancinha', 'Compré unos recuerdos para mi familia.', 'Comprei umas lembrancinhas para minha família.'],
+
+      ['Comida & Restaurante', 'La cuenta', 'A conta', 'Camarero, ¿nos trae la cuenta, por favor?', 'Garçom, nos traz a conta, por favor?'],
+      ['Comida & Restaurante', 'La propina', 'A gorjeta', 'Dejamos una buena propina por el servicio.', 'Deixamos uma boa gorjeta pelo serviço.'],
+      ['Comida & Restaurante', 'El tenedor', 'O garfo', 'Se me cayó el tenedor al suelo.', 'Meu garfo caiu no chão.'],
+      ['Comida & Restaurante', 'El cuchillo', 'A faca', 'Este cuchillo corta muy bien la carne.', 'Esta faca corta muito bem a carne.'],
+      ['Comida & Restaurante', 'La cuchara', 'A colher', 'Necesito una cuchara para la sopa.', 'Preciso de uma colher para a sopa.'],
+      ['Comida & Restaurante', 'La servilleta', 'O guardanapo', '¿Me pasas una servilleta de papel?', 'Você me passa um guardanapo de papel?'],
+      ['Comida & Restaurante', 'El desayuno', 'O café da manhã', 'El desayuno es mi comida favorita del día.', 'O café da manhã é minha refeição favorita do dia.'],
+      ['Comida & Restaurante', 'El almuerzo', 'O almoço', 'Almorzamos juntos a las dos de la tarde.', 'Almoçamos juntos às duas da tarde.'],
+      ['Comida & Restaurante', 'La cena', 'O jantar', 'Preparamos una cena ligera con ensalada.', 'Preparamos um jantar leve com salada.'],
+      ['Comida & Restaurante', 'El postre', 'A sobremesa', 'De postre quiero flan con dulce de leche.', 'De sobremesa quero pudim com doce de leite.'],
+      ['Comida & Restaurante', 'La carta / el menú', 'O cardápio', '¿Podemos ver la carta de vinos?', 'Podemos ver a carta de vinhos?'],
+      ['Comida & Restaurante', 'El plato del día', 'O prato do dia', 'Hoy el plato del día es merluza al horno.', 'Hoje o prato do dia é merluza assada.'],
+      ['Comida & Restaurante', 'Sin gluten', 'Sem glúten', '¿Tienen opciones sin gluten en el menú?', 'Vocês têm opções sem glúten no cardápio?'],
+      ['Comida & Restaurante', 'Picante', 'Apimentado', 'La salsa verde es bastante picante.', 'O molho verde é bastante apimentado.'],
+      ['Comida & Restaurante', 'El zumo / jugo', 'O suco', 'Quiero un zumo de naranja recién exprimido.', 'Quero um suco de laranja espremido na hora.'],
+      ['Comida & Restaurante', 'La cerveza de barril', 'O chope', 'Pedimos dos cervezas de barril bien frías.', 'Pedimos dois chopes bem gelados.'],
+      ['Comida & Restaurante', 'El pollo', 'O frango', 'Cocinamos pollo asado con patatas.', 'Cozinhamos frango assado com batatas.'],
+      ['Comida & Restaurante', 'La ternera', 'A carne bovina / vitela', 'El filete de ternera está muy tierno.', 'O bife de carne bovina está muito macio.'],
+      ['Comida & Restaurante', 'Los mariscos', 'Os frutos do mar', 'En la costa los mariscos son fresquísimos.', 'No litoral os frutos do mar são fresquíssimos.'],
+      ['Comida & Restaurante', 'La manzanilla', 'O chá de camomila', 'Tomo una infusión de manzanilla antes de dormir.', 'Tomo um chá de camomila antes de dormir.'],
+      ['Comida & Restaurante', 'El aguacate / la palta', 'O abacate', 'El guacamole se hace con aguacate maduro.', 'O guacamole se faz com abacate maduro.'],
+      ['Comida & Restaurante', 'La fresa / frutilla', 'O morango', 'Me encantan las fresas con nata.', 'Adoro morangos com creme de leite/chantilly.'],
+      ['Comida & Restaurante', 'La piña / el ananá', 'O abacaxi', 'Comimos piña fresca de postre.', 'Comemos abacaxi fresco de sobremesa.'],
+      ['Comida & Restaurante', 'El melocotón / durazno', 'O pêssego', 'El zumo de melocotón está muy dulce.', 'O suco de pêssego está bem doce.'],
+
+      ['Casa & Cotidiano', 'La llave', 'A chave', 'Olvidé las llaves dentro de la casa.', 'Esqueci as chaves dentro de casa.'],
+      ['Casa & Cotidiano', 'La ventana', 'A janela', 'Abre la ventana para que entre aire fresco.', 'Abra a janela para entrar ar fresco.'],
+      ['Casa & Cotidiano', 'La escalera', 'A escada', 'Subimos por la escalera hasta el tercer piso.', 'Subimos pela escada até o terceiro andar.'],
+      ['Casa & Cotidiano', 'El ascensor', 'O elevador', 'El ascensor está fuera de servicio hoy.', 'O elevador está fora de serviço hoje.'],
+      ['Casa & Cotidiano', 'La cocina', 'A cozinha / o fogão', 'Limpiamos toda la cocina después de cenar.', 'Limpamos toda a cozinha depois de jantar.'],
+      ['Casa & Cotidiano', 'La nevera / el refrigerador', 'A geladeira', 'Guarda la leche en la nevera.', 'Guarde o leite na geladeira.'],
+      ['Casa & Cotidiano', 'La lavadora', 'A máquina de lavar', 'Puse la ropa sucia en la lavadora.', 'Coloquei a roupa suja na máquina de lavar.'],
+      ['Casa & Cotidiano', 'La almohada', 'O travesseiro', 'Esta almohada es súper cómoda.', 'Este travesseiro é super confortável.'],
+      ['Casa & Cotidiano', 'La sábana', 'O lençol', 'Cambiamos las sábanas todos los sábados.', 'Trocamos os lençóis todos os sábados.'],
+      ['Casa & Cotidiano', 'La manta / cobija', 'O cobertor', 'En invierno dormimos con dos mantas.', 'No inverno dormimos com dois cobertores.'],
+      ['Casa & Cotidiano', 'El enchufe', 'A tomada', '¿Hay un enchufe cerca de la cama?', 'Tem uma tomada perto da cama?'],
+      ['Casa & Cotidiano', 'La basura', 'O lixo', 'Saco la basura todas las noches.', 'Tiro o lixo todas as noites.'],
+      ['Casa & Cotidiano', 'Barriendo / Barrer', 'Varrendo / Varrer', 'Estoy barriendo el salón antes de que lleguen.', 'Estou varrendo a sala antes que cheguem.'],
+      ['Casa & Cotidiano', 'Fregar los platos', 'Lavar a louça', 'Hoy me toca a mí fregar los platos.', 'Hoje é a minha vez de lavar a louça.'],
+      ['Casa & Cotidiano', 'El alquiler', 'O aluguel', 'El alquiler del piso subió este año.', 'O aluguel do apartamento subiu este ano.'],
+      ['Casa & Cotidiano', 'El vecino', 'O vizinho', 'Mi vecino toca la guitarra muy bien.', 'Meu vizinho toca violão muito bem.'],
+      ['Casa & Cotidiano', 'El barrio', 'O bairro', 'Vivimos en un barrio muy tranquilo y arbolado.', 'Moramos em um bairro muito tranquilo e arborizado.'],
+      ['Casa & Cotidiano', 'Madrugar', 'Acordar muito cedo', 'Mañana tengo que madrugar para ir al médico.', 'Amanhã tenho que acordar cedo para ir ao médico.'],
+      ['Casa & Cotidiano', 'Trasnochar', 'Virar a noite / dormir tarde', 'No me gusta trasnochar entre semana.', 'Não gosto de dormir tarde durante a semana.'],
+      ['Casa & Cotidiano', 'La siesta', 'O cochilo após o almoço', 'En verano siempre duermo una siesta corta.', 'No verão sempre tiro um cochilo curto.'],
+      ['Casa & Cotidiano', 'El espejo', 'O espelho', 'Se miró en el espejo antes de salir.', 'Olhou-se no espelho antes de sair.'],
+      ['Casa & Cotidiano', 'El grifo / la llave', 'A torneira', 'Cierra bien el grifo para no gastar agua.', 'Feche bem a torneira para não gastar água.'],
+      ['Casa & Cotidiano', 'La toalla', 'A toalha', 'Dejé una toalla limpia en el baño.', 'Deixei uma toalha limpa no banheiro.'],
+      ['Casa & Cotidiano', 'El jardín', 'O jardim', 'Regamos las plantas del jardín por la tarde.', 'Regamos as plantas do jardim à tarde.'],
+
+      ['Trabalho & Negócios', 'La reunión', 'A reunião', 'La reunión con el cliente empieza a las diez.', 'A reunião com o cliente começa às dez.'],
+      ['Trabalho & Negócios', 'El presupuesto', 'O orçamento', 'Aprobaron el presupuesto del nuevo proyecto.', 'Aprovaram o orçamento do novo projeto.'],
+      ['Trabalho & Negócios', 'La factura', 'A nota fiscal / fatura', 'Necesito la factura con los datos de la empresa.', 'Preciso da nota fiscal com os dados da empresa.'],
+      ['Trabalho & Negócios', 'El sueldo / salario', 'O salário', 'Le ofrecieron un mejor sueldo en otra área.', 'Ofereceram um salário melhor em outra área.'],
+      ['Trabalho & Negócios', 'La entrevista', 'A entrevista', 'Tengo una entrevista de trabajo mañana.', 'Tenho uma entrevista de emprego amanhã.'],
+      ['Trabalho & Negócios', 'El currículum', 'O currículo', 'Actualicé mi currículum en español e inglés.', 'Atualizei meu currículo em espanhol e inglês.'],
+      ['Trabalho & Negócios', 'El plazo', 'O prazo', 'El plazo de entrega vence este viernes.', 'O prazo de entrega vence nesta sexta-feira.'],
+      ['Trabalho & Negócios', 'El equipo', 'A equipe', 'Trabajamos en equipo para cumplir la meta.', 'Trabalhamos em equipe para cumprir a meta.'],
+      ['Trabalho & Negócios', 'El jefe / la jefa', 'O chefe / a chefe', 'Mi jefa es muy organizada y accesible.', 'Minha chefe é muito organizada e acessível.'],
+      ['Trabalho & Negócios', 'El compañero', 'O colega de trabalho', 'Mis compañeros me ayudaron mucho el primer día.', 'Meus colegas me ajudaram muito no primeiro dia.'],
+      ['Trabalho & Negócios', 'La empresa', 'A empresa', 'La empresa tiene sedes en cinco países.', 'A empresa tem sedes em cinco países.'],
+      ['Trabalho & Negócios', 'El contrato', 'O contrato', 'Firmamos el contrato digitalmente hoy.', 'Assinamos o contrato digitalmente hoje.'],
+      ['Trabalho & Negócios', 'El correo electrónico', 'O e-mail', 'Te mandé un correo electrónico con los archivos.', 'Te mandei um e-mail com os arquivos.'],
+      ['Trabalho & Negócios', 'Adjuntar', 'Anexar', 'Olvidé adjuntar el documento en el correo.', 'Esqueci de anexar o documento no e-mail.'],
+      ['Trabalho & Negócios', 'La pantalla', 'A tela', 'Voy a compartir mi pantalla para mostrar el gráfico.', 'Vou compartilhar minha tela para mostrar o gráfico.'],
+      ['Trabalho & Negócios', 'El teclado', 'O teclado', 'Este teclado tiene la letra eñe integrada.', 'Este teclado tem a letra ñ integrada.'],
+      ['Trabalho & Negócios', 'La contraseña', 'A senha', 'Cambia tu contraseña cada tres meses.', 'Troque sua senha a cada três meses.'],
+      ['Trabalho & Negócios', 'El éxito', 'O sucesso', 'El lanzamiento del producto fue un gran éxito.', 'O lançamento do produto foi um grande sucesso.'],
+      ['Trabalho & Negócios', 'La meta / el objetivo', 'A meta / o objetivo', 'Alcanzamos todos los objetivos del trimestre.', 'Alcançamos todos os objetivos do trimestre.'],
+      ['Trabalho & Negócios', 'El descanso / la pausa', 'O intervalo / pausa', 'Tomamos un descanso de quince minutos.', 'Fizemos uma pausa de quinze minutos.'],
+      ['Trabalho & Negócios', 'Las vacaciones', 'As férias', 'En agosto me voy de vacaciones a la playa.', 'Em agosto saio de férias para a praia.'],
+      ['Trabalho & Negócios', 'La huelga', 'A greve', 'Hay huelga de transporte público hoy.', 'Há greve de transporte público hoje.'],
+      ['Trabalho & Negócios', 'El ascenso', 'A promoção (no cargo)', 'Consiguió un ascenso después de dos años.', 'Conseguiu uma promoção depois de dois anos.'],
+      ['Trabalho & Negócios', 'Emprender', 'Empreender', 'Decidió emprender su propio negocio digital.', 'Decidiu empreender seu próprio negócio digital.'],
+
+      ['Saúde & Farmácia', 'El dolor de cabeza', 'A dor de cabeça', 'Tengo un fuerte dolor de cabeza desde ayer.', 'Estou com uma forte dor de cabeça desde ontem.'],
+      ['Saudações & Expressões', 'Me siento mal', 'Estou me sentindo mal', 'Hoy me siento un poco mal del estómago.', 'Hoje estou me sentindo um pouco mal do estômago.'],
+      ['Saúde & Farmácia', 'La fiebre', 'A febre', 'El niño tiene treinta y ocho de fiebre.', 'O menino está com trinta e oito de febre.'],
+      ['Saúde & Farmácia', 'El resfriado', 'O resfriado', 'Es solo un resfriado común, no te preocupes.', 'É só um resfriado comum, não se preocupe.'],
+      ['Saúde & Farmácia', 'La tos', 'A tosse', 'Compré un jarabe para la tos seca.', 'Comprei um xarope para a tosse seca.'],
+      ['Saúde & Farmácia', 'La receta médica', 'A receita médica', 'Este antibiótico solo se vende con receta médica.', 'Este antibiótico só se vende com receita médica.'],
+      ['Saúde & Farmácia', 'La pastilla', 'O comprimido', 'Toma una pastilla cada ocho horas con agua.', 'Tome um comprimido a cada oito horas com água.'],
+      ['Saúde & Farmácia', 'La tirita / curita', 'O curativo / band-aid', 'Me corté el dedo, ¿tienes una tirita?', 'Cortei o dedo, você tem um curativo?'],
+      ['Saúde & Farmácia', 'La alergia', 'A alergia', 'Tengo alergia al polen en primavera.', 'Tenho alergia a pólen na primavera.'],
+      ['Saúde & Farmácia', 'El tobillo', 'O tornozelo', 'Me torcí el tobillo jugando al fútbol.', 'Torci o tornozelo jogando futebol.'],
+      ['Saúde & Farmácia', 'La espalda', 'As costas', 'Me duele la espalda por estar mucho sentado.', 'Minhas costas doem por ficar muito sentado.'],
+      ['Saúde & Farmácia', 'La garganta', 'A garganta', 'Tengo la garganta irritada por el aire acondicionado.', 'Estou com a garganta irritada pelo ar-condicionado.'],
+      ['Saúde & Farmácia', 'El mareo', 'A tontura / enjoo', 'Siento un ligero mareo al levantarme rápido.', 'Sinto uma leve tontura ao me levantar rápido.'],
+      ['Saúde & Farmácia', 'La urgencia', 'A emergência / pronto-socorro', 'Fuimos a urgencias por la noche.', 'Fomos ao pronto-socorro à noite.'],
+      ['Saúde & Farmácia', 'La cita médica', 'A consulta médica', 'Pedí una cita médica para el jueves.', 'Marquei uma consulta médica para quinta-feira.'],
+      ['Saúde & Farmácia', 'La farmacia de guardia', 'A farmácia de plantão', 'Buscamos una farmacia de guardia abierta.', 'Procuramos uma farmácia de plantão aberta.'],
+      ['Saúde & Farmácia', 'El análisis de sangre', 'O exame de sangue', 'Tengo que hacerme un análisis de sangre en ayunas.', 'Tenho que fazer um exame de sangue em jejum.'],
+      ['Saúde & Farmácia', 'La vacuna', 'A vacina', 'Me puse la vacuna contra la gripe.', 'Tomei a vacina contra a gripe.'],
+      ['Saúde & Farmácia', 'El bienestar', 'O bem-estar', 'Hacer ejercicio mejora nuestro bienestar.', 'Fazer exercício melhora nosso bem-estar.'],
+      ['Saúde & Farmácia', 'Saludable', 'Saudável', 'Lleva una alimentación muy saludable.', 'Leva uma alimentação muito saudável.'],
+
+      ['Emoções & Personalidade', 'Ilusionado / a', 'Empolgado / entusiasmado', 'Estoy muy ilusionado con este viaje.', 'Estou muito empolgado com esta viagem.'],
+      ['Emoções & Personalidade', 'Agobiado / a', 'Sobrecarregado / sufocado', 'Se siente agobiado con tanto trabajo.', 'Sente-se sobrecarregado com tanto trabalho.'],
+      ['Emoções & Personalidade', 'Echar de menos', 'Sentir saudade', 'Echo mucho de menos a mis amigos.', 'Sinto muita saudade dos meus amigos.'],
+      ['Emoções & Personalidade', 'Enfadado / Enojado', 'Bravo / irritado', 'Está enfadado porque nadie le avisó.', 'Está bravo porque ninguém o avisou.'],
+      ['Emoções & Personalidade', 'Asustado / a', 'Assustado / com medo', 'El perro estaba asustado por los truenos.', 'O cachorro estava assustado com os trovões.'],
+      ['Emoções & Personalidade', 'Orgulloso / a', 'Orgulhoso / a', 'Estamos muy orgullosos de tus logros.', 'Estamos muito orgulhosos das suas conquistas.'],
+      ['Emoções & Personalidade', 'Avergonzado / a', 'Envergonhado / com vergonha', 'Se puso rojo y muy avergonzado.', 'Ficou vermelho e muito envergonhado.'],
+      ['Emoções & Personalidade', 'Aliviado / a', 'Aliviado / a', 'Respiró aliviado al aprobar el examen.', 'Respirou aliviado ao passar na prova.'],
+      ['Emoções & Personalidade', 'Amable', 'Gentil / educado', 'La recepcionista fue sumamente amable.', 'A recepcionista foi extremamente gentil.'],
+      ['Emoções & Personalidade', 'Tacaño / a', 'Pão-duro / avarento', 'No seas tacaño e invita el café.', 'Não seja pão-duro e pague o café.'],
+      ['Emoções & Personalidade', 'Testarudo / Terco', 'Teimoso / a', 'Es muy testarudo, nunca cambia de opinión.', 'É muito teimoso, nunca muda de opinião.'],
+      ['Emoções & Personalidade', 'Gracioso / a', 'Engraçado / a', 'Tu hermano cuenta chistes muy graciosos.', 'Seu irmão conta piadas muito engraçadas.'],
+      ['Emoções & Personalidade', 'Cariñoso / a', 'Carinhoso / a', 'Es una persona muy cariñosa y atenta.', 'É uma pessoa muito carinhosa e atenciosa.'],
+      ['Emoções & Personalidade', 'Valiente', 'Corajoso / a', 'Fue muy valiente al hablar en público.', 'Foi muito corajoso ao falar em público.'],
+      ['Emoções & Personalidade', 'Tímido / a', 'Tímido / a', 'Al principio era tímido, pero luego habló mucho.', 'No início era tímido, mas depois falou muito.'],
+      ['Emoções & Personalidade', 'Trabajador / a', 'Trabalhador / esforçado', 'Es la persona más trabajadora de la oficina.', 'É a pessoa mais esforçada do escritório.'],
+      ['Emoções & Personalidade', 'Perezoso / Vago', 'Preguiçoso / a', 'Los domingos me pongo un poco perezoso.', 'Aos domingos fico um pouco preguiçoso.'],
+      ['Emoções & Personalidade', 'Fiable / Confiable', 'Confiável', 'Es un amigo totalmente fiable.', 'É um amigo totalmente confiável.'],
+      ['Emoções & Personalidade', 'Sensible', 'Sensível', 'Es muy sensible a la música y al arte.', 'É muito sensível à música e à arte.'],
+      ['Emoções & Personalidade', 'Sensato / a', 'Sensato / prudente', 'Tomaste una decisión muy sensata.', 'Você tomou uma decisão muito sensata.'],
+
+      ['Compras & Dinheiro', 'La tienda', 'A loja', 'Esta tienda abre de lunes a sábado.', 'Esta loja abre de segunda a sábado.'],
+      ['Compras & Dinheiro', 'El escaparate / la vitrina', 'A vitrine', 'Vi unos zapatos preciosos en el escaparate.', 'Vi uns sapatos lindos na vitrine.'],
+      ['Compras & Dinheiro', 'El probador', 'O provador', 'Los probadores están al fondo a la derecha.', 'Os provadores ficam no fundo à direita.'],
+      ['Compras & Dinheiro', 'La talla', 'O tamanho (de roupa)', '¿Tiene esta camisa en talla mediana?', 'Tem esta camisa no tamanho médio?'],
+      ['Compras & Dinheiro', 'El descuento / la rebaja', 'O desconto / liquidação', 'En enero empiezan las rebajas de invierno.', 'Em janeiro começam as liquidações de inverno.'],
+      ['Compras & Dinheiro', 'El recibo / ticket', 'O comprovante / recibo', 'Guarde el recibo por si quiere cambiarlo.', 'Guarde o recibo caso queira trocar.'],
+      ['Compras & Dinheiro', 'El cambio / la vuelta', 'O troco', 'Aquí tiene su cambio, muchas gracias.', 'Aqui está o seu troco, muito obrigado.'],
+      ['Compras & Dinheiro', 'El cajero automático', 'O caixa eletrônico', 'Necesito sacar dinero en un cajero automático.', 'Preciso sacar dinheiro em um caixa eletrônico.'],
+      ['Compras & Dinheiro', 'Ahorrar', 'Economizar / poupar', 'Estoy ahorrando para comprar un coche.', 'Estou economizando para comprar um carro.'],
+      ['Compras & Dinheiro', 'Gastar', 'Gastar', 'No quiero gastar demasiado este mes.', 'Não quero gastar demais este mês.'],
+      ['Compras & Dinheiro', 'Barato / Económico', 'Barato / em conta', 'Este mercado es mucho más barato.', 'Este mercado é muito mais barato.'],
+      ['Compras & Dinheiro', 'Caro / Costoso', 'Caro', 'Vivir en el centro suele ser bastante caro.', 'Morar no centro costuma ser bastante caro.'],
+      ['Compras & Dinheiro', 'La cartera / billetera', 'A carteira', 'Llevo las tarjetas dentro de la cartera.', 'Levo os cartões dentro da carteira.'],
+      ['Compras & Dinheiro', 'El bolso', 'A bolsa', 'Guardó las gafas de sol en su bolso.', 'Guardou os óculos de sol na bolsa dela.'],
+      ['Compras & Dinheiro', 'Los vaqueros / jeans', 'A calça jeans', 'Me compré unos vaqueros azules muy cómodos.', 'Comprei uma calça jeans azul muito confortável.'],
+      ['Compras & Dinheiro', 'Las zapatillas', 'Os tênis / chinelos', 'Salgo a correr con mis zapatillas nuevas.', 'Saio para correr com meus tênis novos.'],
+      ['Compras & Dinheiro', 'El abrigo', 'O casaco / sobretudo', 'Ponte el abrigo porque hace mucho frío.', 'Coloque o casaco porque está muito frio.'],
+      ['Compras & Dinheiro', 'La bufanda', 'O cachecol', 'Lleva una bufanda de lana roja.', 'Usa um cachecol de lã vermelha.'],
+      ['Compras & Dinheiro', 'El paraguas', 'O guarda-chuva', 'No olvides el paraguas, está nublado.', 'Não esqueça o guarda-chuva, está nublado.'],
+      ['Compras & Dinheiro', 'Devolver', 'Devolver', 'Quiero devolver este jersey porque me queda grande.', 'Quero devolver este suéter porque ficou grande.'],
+
+      ['Tempo & Natureza', 'Hace buen tiempo', 'O tempo está bom', 'Hoy hace buen tiempo para ir al parque.', 'Hoje o tempo está bom para ir ao parque.'],
+      ['Tempo & Natureza', 'Está lloviendo', 'Está chovendo', 'Está lloviendo a cántaros desde esta mañana.', 'Está chovendo torrencialmente desde esta manhã.'],
+      ['Tempo & Natureza', 'La tormenta', 'A tempestade', 'Anoche hubo una tormenta eléctrica muy fuerte.', 'Ontem à noite houve uma tempestade elétrica muito forte.'],
+      ['Tempo & Natureza', 'El relámpago', 'O relâmpago', 'Vimos el relámpago antes de oír el trueno.', 'Vimos o relâmpago antes de ouvir o trovão.'],
+      ['Tempo & Natureza', 'La niebla', 'A neblina / nevoeiro', 'Conducir con niebla requiere mucha precaución.', 'Dirigir com neblina exige muita precaução.'],
+      ['Tempo & Natureza', 'La nieve', 'A neve', 'Las cumbres de los Andes están cubiertas de nieve.', 'Os picos dos Andes estão cobertos de neve.'],
+      ['Tempo & Natureza', 'El verano', 'O verão', 'En verano los días son muy largos.', 'No verão os dias são muito longos.'],
+      ['Tempo & Natureza', 'El otoño', 'O outono', 'En otoño caen las hojas de los árboles.', 'No outono caem as folhas das árvores.'],
+      ['Tempo & Natureza', 'El invierno', 'O inverno', 'En invierno encendemos la calefacción.', 'No inverno ligamos o aquecimento.'],
+      ['Tempo & Natureza', 'La primavera', 'A primavera', 'En primavera florecen todos los parques.', 'Na primavera florescem todos os parques.'],
+      ['Tempo & Natureza', 'El amanecer', 'O amanhecer', 'Vimos el amanecer desde la playa.', 'Vimos o amanhecer da praia.'],
+      ['Tempo & Natureza', 'El atardecer', 'O entardecer / pôr do sol', 'El atardecer en la montaña fue inolvidable.', 'O pôr do sol na montanha foi inesquecível.'],
+      ['Tempo & Natureza', 'La estrella', 'A estrela', 'En el campo se ven miles de estrellas.', 'No campo veem-se milhares de estrelas.'],
+      ['Tempo & Natureza', 'El bosque', 'A floresta / bosque', 'Caminamos por un sendero dentro del bosque.', 'Caminhamos por uma trilha dentro da floresta.'],
+      ['Tempo & Natureza', 'La cascada', 'A cachoeira', 'Nos bañamos en una cascada de agua cristalina.', 'Tomamos banho em uma cachoeira de água cristalina.'],
+      ['Tempo & Natureza', 'El medio ambiente', 'O meio ambiente', 'Debemos cuidar el medio ambiente cada día.', 'Devemos cuidar do meio ambiente todos os dias.'],
+
+      ['Regionalismos', 'El coche / carro / auto', 'O carro (ES / MX / AR)', 'Aparqué el coche justo delante de tu casa.', 'Estacionei o carro bem na frente da sua casa.'],
+      ['Regionalismos', 'El móvil / celular', 'O celular (ES / LATAM)', 'Me quedé sin batería en el móvil.', 'Fiquei sem bateria no celular.'],
+      ['Regionalismos', 'El ordenador / computadora', 'O computador (ES / LATAM)', 'Trabajo ocho horas al día frente al ordenador.', 'Trabalho oito horas por dia na frente do computador.'],
+      ['Regionalismos', '¡Qué guay! / ¡Qué chido!', 'Que legal! (ES / MX)', '¡Qué guay que hayas venido a visitarnos!', 'Que legal que você veio nos visitar!'],
+      ['Regionalismos', '¡Qué chévere!', 'Que bacana! (CO / VE / PE)', '¡Qué chévere quedó tu presentación!', 'Que bacana ficou a sua apresentação!'],
+      ['Regionalismos', '¿Cómo andás? / ¡Che!', 'Como você está? / Ei! (AR)', '¡Che, qué alegría verte de nuevo por acá!', 'Ei, que alegria te ver de novo por aqui!'],
+      ['Regionalismos', 'El piso / departamento', 'O apartamento (ES / LATAM)', 'Alquilaron un piso muy luminoso en Madrid.', 'Alugaram um apartamento muito iluminado em Madri.'],
+      ['Regionalismos', 'La fresa / frutilla', 'O morango (ES-MX / AR-CL)', 'En Argentina se dice frutilla en lugar de fresa.', 'Na Argentina diz-se frutilla em vez de fresa.'],
+      ['Regionalismos', 'El plátano / la banana', 'A banana (ES-MX / AR)', 'Como un plátano antes de ir al gimnasio.', 'Como uma banana antes de ir à academia.'],
+      ['Regionalismos', 'El bolígrafo / pluma / lapicera', 'A caneta (ES / MX / AR)', '¿Me prestas un bolígrafo azul por un segundo?', 'Me empresta uma caneta azul por um segundo?'],
+      ['Regionalismos', 'Las gafas / los lentes', 'Os óculos (ES / LATAM)', 'No veo nada sin mis gafas de leer.', 'Não enxergo nada sem meus óculos de leitura.'],
+      ['Regionalismos', 'El camarero / mesero / mozo', 'O garçom (ES / MX / AR)', 'El camarero nos recomendó el plato de la casa.', 'O garçom nos recomendou o prato da casa.'],
+      ['Regionalismos', 'La chaqueta / chamarra / campera', 'A jaqueta (ES / MX / AR)', 'Lleva una chaqueta por si refresca por la noche.', 'Leve uma jaqueta caso esfrie à noite.'],
+      ['Regionalismos', 'El dinero / la plata / la lana', 'O dinheiro (Geral / AR / MX)', 'No tengo mucha plata encima hoy.', 'Não tenho muito dinheiro comigo hoje.'],
+      ['Regionalismos', 'El autobús / camión / colectivo', 'O ônibus (ES / MX / AR)', 'El colectivo pasa cada diez minutos por esta avenida.', 'O ônibus passa a cada dez minutos por esta avenida.'],
+      ['Regionalismos', 'El trabajo / el curro / la chamba', 'O trabalho (Geral / ES / MX)', 'Por fin encontré una buena chamba cerca de casa.', 'Finalmente encontrei um bom trabalho perto de casa.']
+    ];
+
+    const ALL_VOCAB = RAW_VOCAB_ITEMS.map((item, idx) => ({
+      id: `v${idx + 1}`,
+      cat: item[0],
+      word: item[1],
+      pt: item[2],
+      exEs: item[3],
+      exPt: item[4]
+    }));
+
+    let activeVocabCat = 'Todas';
+    let vocabPageLimit = 36;
+    let fcDeck = [...ALL_VOCAB];
+    let fcIndex = 0;
+    let fcFlipped = false;
+
+    function switchVocabView(view) {
+      const bank = document.getElementById('vocab-view-bank');
+      const fc = document.getElementById('vocab-view-flashcards');
+      const btnB = document.getElementById('vview-btn-bank');
+      const btnF = document.getElementById('vview-btn-fc');
+      if (view === 'bank') {
+        bank.classList.remove('hidden'); fc.classList.add('hidden');
+        btnB.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-deepblue-900 shadow-2xs transition';
         btnF.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-stone-600 hover:text-deepblue-900 transition';
       } else {
         bank.classList.add('hidden'); fc.classList.remove('hidden');
@@ -1534,8 +2190,550 @@ service cloud.firestore {
     function shuffleFC() { fcDeck.sort(() => Math.random() - 0.5); fcIndex = 0; renderFlashcard(); }
 
     /* =========================================================================
-       7. ÁREA 03: GRAMÁTICA (3 ETAPAS + CONJUGADOR 35 IRREGULARES)
+       7. ÁREA 03: GRAMÁTICA (10 CATEGORIAS EM 3 ETAPAS + CONJUGADOR 35 IRREGULARES)
        ========================================================================= */
+    const GRAMMAR_TOPICS = [
+      {
+        title: '1. Artigos (El, La, Los, Las, Lo)',
+        rule: `<p><strong>Artigos Definidos:</strong> <code>el</code> (masc. sing.), <code>la</code> (fem. sing.), <code>los</code> (masc. pl.), <code>las</code> (fem. pl.).</p>
+               <p class="mt-2"><strong>Artigo Neutro <code>lo</code>:</strong> Nunca acompanha substantivos! Ele transforma adjetivos ou advérbios em ideias abstratas (ex: <em>lo mejor</em> = o melhor, <em>lo importante</em> = o importante).</p>
+               <p class="mt-2"><strong>Atenção:</strong> Substantivos femininos iniciados por <em>a/ha</em> tônico usam <code>el</code> no singular para evitar cacofonia: <em>el agua, el alma, el águila</em> (no plural: <em>las aguas</em>).</p>`,
+        examples: [
+          { es: 'Lo más difícil de aprender es empezar.', pt: 'O mais difícil de aprender é começar.' },
+          { es: 'El agua fría de la montaña es pura.', pt: 'A água fria da montanha é pura.' },
+          { es: 'Los libros están sobre la mesa.', pt: 'Os livros estão sobre a mesa.' }
+        ],
+        quizzes: [
+          { q: 'Complete: "_____ importante es practicar todos los días."', opts: ['El', 'Lo', 'La'], correct: 1, exp: 'Antes de adjetivo com sentido abstrato usa-se o neutro "Lo".' },
+          { q: 'Complete: "Quiero beber _____ agua fresca."', opts: ['el', 'la', 'lo'], correct: 0, exp: '"Agua" começa com "a" tônico, por isso usa "el agua" no singular.' },
+          { q: 'Como fica "as águas" no plural?', opts: ['Los aguas', 'Las aguas', 'Lo aguas'], correct: 1, exp: 'No plural volta ao artigo feminino normal: "las aguas".' },
+          { q: 'Qual frase está correta?', opts: ['Lo coche es rápido.', 'El coche es rápido.', 'La coche es rápido.'], correct: 1, exp: '"Coche" é substantivo masculino singular: "El coche".' },
+          { q: 'Complete: "Me gustó mucho _____ que dijiste."', opts: ['el', 'lo', 'los'], correct: 1, exp: '"Lo que" equivale a "aquilo que / o que".' }
+        ]
+      },
+      {
+        title: '2. Pronomes Pessoais & Complemento',
+        rule: `<p><strong>Pronomes Sujeito:</strong> <code>yo, tú, él/ella/usted, nosotros/as, vosotros/as, ellos/ellas/ustedes</code>.</p>
+               <p class="mt-2"><strong>Tratamento Formal vs. Informal:</strong> <code>Tú</code> (informal, ou <code>vos</code> na Argentina/Uruguai) e <code>Usted</code> (formal, conjuga na 3ª pessoa).</p>
+               <p class="mt-2"><strong>Pronomes Complemento:</strong> Vêm <em>antes</em> do verbo conjugado (ex: <em>Te llamo mañana</em>; <em>Se lo dije</em>).</p>`,
+        examples: [
+          { es: '¿Usted desea tomar algo mientras espera?', pt: 'O(A) senhor(a) deseja beber algo enquanto espera?' },
+          { es: 'Te lo envío por correo hoy mismo.', pt: 'Eu te envio isso por e-mail hoje mesmo.' },
+          { es: 'Nosotros vivimos cerca de la estación.', pt: 'Nós moramos perto da estação.' }
+        ],
+        quizzes: [
+          { q: 'Qual verbo concorda com "Usted"?', opts: ['Usted hablas', 'Usted habla', 'Usted hablo'], correct: 1, exp: '"Usted" usa sempre a conjugação da 3ª pessoa do singular.' },
+          { q: 'Como dizer "Eu te amo" de forma natural?', opts: ['Yo amo tú', 'Te amo', 'Amo te'], correct: 1, exp: 'Pronomes átonos vêm antes do verbo conjugado: "Te amo".' },
+          { q: 'Qual pronome significa "vocês" na América Latina?', opts: ['Vosotros', 'Ustedes', 'Ellos'], correct: 1, exp: 'Na América Latina usa-se "ustedes" tanto formal quanto informalmente.' },
+          { q: 'Complete: "A mí _____ gusta mucho viajar."', opts: ['yo', 'me', 'mi'], correct: 1, exp: 'Verbo gustar exige pronome indireto: "me gusta".' },
+          { q: 'Qual opção substitui "El libro" em "Compré el libro"?', opts: ['Lo compré', 'Le compré', 'La compré'], correct: 0, exp: 'Objeto direto masculino singular: "Lo compré".' }
+        ]
+      },
+      {
+        title: '3. Verbos Essenciais (Ser, Estar, Tener, Hacer)',
+        rule: `<p><strong>Ser vs. Estar:</strong> <code>Ser</code> indica identidade, profissão, origem e características permanentes. <code>Estar</code> indica estado passageiro e localização física (<em>Madrid está en España</em>).</p>
+               <p class="mt-2"><strong>Tener (Ter):</strong> Usado para idade (<em>Tengo 28 años</em>) e sensações físicas (<em>tener hambre, sed, frío, calor, miedo, sueño</em>).</p>`,
+        examples: [
+          { es: 'El museo está al lado de la plaza mayor.', pt: 'O museu fica ao lado da praça principal.' },
+          { es: 'Tengo mucha hambre y un poco de sueño.', pt: 'Estou com muita fome e um pouco de sono.' },
+          { es: 'Hoy hace mucho viento en la costa.', pt: 'Hoje venta muito no litoral.' }
+        ],
+        quizzes: [
+          { q: 'Como dizer "Tenho 30 anos" em espanhol?', opts: ['Soy 30 años', 'Estoy con 30 años', 'Tengo 30 años'], correct: 2, exp: 'Idade em espanhol usa sempre o verbo "tener".' },
+          { q: 'Para localização geográfica ("Onde fica o banco?"), usamos:', opts: ['¿Dónde es el banco?', '¿Dónde está el banco?', '¿Dónde tiene el banco?'], correct: 1, exp: 'Localização física usa sempre "estar".' },
+          { q: 'Como se diz "Estou com frio"?', opts: ['Soy frío', 'Tengo frío', 'Hago frío'], correct: 1, exp: 'Sensação corporal usa "tener frío".' },
+          { q: 'Para falar do clima ("Está calor hoje"), usamos:', opts: ['Hace calor hoy', 'Tiene calor hoy', 'Es calor hoy'], correct: 0, exp: 'Fenômenos climáticos usam "hacer": "Hace calor / frío / sol".' },
+          { q: 'Complete: "Mi hermana _____ médica y _____ muy contenta hoy."', opts: ['está / es', 'es / está', 'es / es'], correct: 1, exp: 'Profissão = "es"; estado de ânimo momentâneo = "está".' }
+        ]
+      },
+      {
+        title: '4. Presente de Indicativo (Regulares e Irregulares)',
+        rule: `<p><strong>Terminações Regulares:</strong> <code>-AR</code> (-o, -as, -a, -amos, -áis, -an) | <code>-ER</code> (-o, -es, -e, -emos, -éis, -en) | <code>-IR</code> (-o, -es, -e, -imos, -ís, -en).</p>
+               <p class="mt-2"><strong>Ditongação (Verbos Bota):</strong> Muitos verbos trocam <code>e → ie</code> (<em>quiero, empiezo, entiendo</em>) ou <code>o → ue</code> (<em>puedo, vuelvo, duermo</em>), exceto em <em>nosotros</em> e <em>vosotros</em>.</p>`,
+        examples: [
+          { es: 'Yo quiero aprender español pero nosotros preferimos practicar.', pt: 'Eu quero aprender espanhol, mas nós preferimos praticar.' },
+          { es: '¿A qué hora vuelves a casa hoy?', pt: 'A que horas você volta para casa hoje?' },
+          { es: 'Ellos entienden perfectamente todo lo que dices.', pt: 'Eles entendem perfeitamente tudo o que você diz.' }
+        ],
+        quizzes: [
+          { q: 'Qual é a conjugação de "Poder" para "Yo"?', opts: ['Yo podo', 'Yo puedo', 'Yo puede'], correct: 1, exp: 'O "o" ditonga em "ue": "Yo puedo".' },
+          { q: 'Qual é a forma correta de "Querer" para "Nosotros"?', opts: ['Nosotros quieremos', 'Nosotros queremos', 'Nosotros querimos'], correct: 1, exp: 'Em "nosotros" não há ditongação: "queremos".' },
+          { q: 'Complete: "La clase _____ a las ocho." (empezar)', opts: ['empeza', 'empieza', 'empiza'], correct: 1, exp: 'Empezar ditonga e → ie: "empieza".' },
+          { q: 'Como se diz "Eu saio" (salir)?', opts: ['Yo salo', 'Yo salgo', 'Yo saigo'], correct: 1, exp: 'Primeira pessoa irregular em -go: "Yo salgo".' },
+          { q: 'Complete: "Mis hijos _____ ocho horas cada noche." (dormir)', opts: ['dormen', 'duermen', 'durmen'], correct: 1, exp: 'Dormir ditonga o → ue na 3ª do plural: "duermen".' }
+        ]
+      },
+      {
+        title: '5. Passado (Pretérito Perfecto vs. Indefinido)',
+        rule: `<p><strong>Pretérito Perfecto (he/has/ha + particípio):</strong> Ações passadas ligadas ao presente ou em um tempo que ainda não acabou (<em>hoy, esta semana, este mes, alguna vez</em>).</p>
+               <p class="mt-2"><strong>Pretérito Indefinido:</strong> Ações concluídas em um tempo já encerrado (<em>ayer, anoche, la semana pasada, en 2020</em>).</p>`,
+        examples: [
+          { es: 'Hoy he desayunado café con tostadas.', pt: 'Hoje tomei café da manhã com torradas.' },
+          { es: 'Ayer fui al cine con mis amigos.', pt: 'Ontem fui ao cinema com meus amigos.' },
+          { es: '¿Alguna vez has viajado a México?', pt: 'Você alguma vez já viajou para o México?' }
+        ],
+        quizzes: [
+          { q: 'Com marcador "Ayer" (ontem), qual tempo usamos?', opts: ['Ayer he ido', 'Ayer fui', 'Ayer iba'], correct: 1, exp: '"Ayer" é tempo encerrado → Pretérito Indefinido ("fui").' },
+          { q: 'Complete: "Esta semana _____ mucho." (trabajar)', opts: ['trabajé', 'he trabajado', 'trabajaba'], correct: 1, exp: '"Esta semana" ainda não acabou → Pretérito Perfecto ("he trabajado").' },
+          { q: 'Qual é o particípio irregular de "escribir"?', opts: ['escribido', 'escrito', 'escribto'], correct: 1, exp: 'O particípio de escribir é "escrito".' },
+          { q: 'Qual é o particípio irregular de "hacer"?', opts: ['hacido', 'hecho', 'hacho'], correct: 1, exp: 'O particípio de hacer é "hecho".' },
+          { q: 'Complete: "Anoche _____ una película increíble." (ver)', opts: ['he visto', 'vimos', 'veíamos'], correct: 1, exp: '"Anoche" (ontem à noite) pede Indefinido: "vimos".' }
+        ]
+      },
+      {
+        title: '6. Futuro (Futuro Simple & Ir a + Infinitivo)',
+        rule: `<p><strong>Futuro Próximo (Ir a + infinitivo):</strong> Muito usado na fala cotidiana para planos imediatos (<em>Voy a estudiar ahora</em>).</p>
+               <p class="mt-2"><strong>Futuro Simple:</strong> Adiciona-se <code>-é, -ás, -á, -emos, -éis, -án</code> diretamente ao infinitivo completo (<em>hablaré, comerás, vivirá</em>).</p>`,
+        examples: [
+          { es: 'Mañana voy a llamar al hotel para confirmar.', pt: 'Amanhã vou ligar para o hotel para confirmar.' },
+          { es: 'El próximo año hablaremos español con fluidez.', pt: 'No próximo ano falaremos espanhol com fluência.' },
+          { es: '¿Qué harás este fin de semana?', pt: 'O que você fará neste fim de semana?' }
+        ],
+        quizzes: [
+          { q: 'Como se conjuga "Tener" no Futuro Simple para "Yo"?', opts: ['Teneré', 'Tendré', 'Teniré'], correct: 1, exp: 'Raiz irregular "tendr-" + é: "Tendré".' },
+          { q: 'Complete: "Nosotros _____ a viajar en julio."', opts: ['vamos', 'iremos', 'van'], correct: 0, exp: 'Estrutura perifrástica: "Vamos a viajar".' },
+          { q: 'Qual é o Futuro Simple de "Hacer" para "Ellos"?', opts: ['Hacerán', 'Harán', 'Hacen'], correct: 1, exp: 'Raiz irregular "har-" + án: "Harán".' },
+          { q: 'Complete: "Mañana _____ sol en toda la región." (hacer)', opts: ['hará', 'hacerá', 'hizo'], correct: 0, exp: 'Futuro de hacer na 3ª pessoa: "hará".' },
+          { q: 'Em espanhol, o futuro próximo exige a preposição:', opts: ['Voy estudiar', 'Voy a estudiar', 'Voy de estudiar'], correct: 1, exp: 'Sempre "ir + a + infinitivo": "Voy a estudiar".' }
+        ]
+      },
+      {
+        title: '7. Adjetivos (Gênero, Número e Posição)',
+        rule: `<p><strong>Concordância:</strong> Os adjetivos concordam em gênero e número com o substantivo (<em>una casa blanca, unos coches blancos</em>).</p>
+               <p class="mt-2"><strong>Apócope (Encurtamento):</strong> Antes de substantivo masculino singular, <code>bueno → buen</code>, <code>malo → mal</code> e <code>grande → gran</code> (antes de masc. ou fem. singular).</p>`,
+        examples: [
+          { es: 'Es un buen día para caminar por la ciudad.', pt: 'É um bom dia para caminhar pela cidade.' },
+          { es: 'Ella es una gran profesional y excelente amiga.', pt: 'Ela é uma grande profissional e excelente amiga.' },
+          { es: 'Compramos unas sillas muy cómodas.', pt: 'Compramos umas cadeiras muito confortáveis.' }
+        ],
+        quizzes: [
+          { q: 'Complete: "Juan es un _____ amigo."', opts: ['bueno', 'buen', 'buena'], correct: 1, exp: 'Antes de substantivo masculino singular, "bueno" vira "buen".' },
+          { q: 'Complete: "Madrid es una _____ capital europea."', opts: ['grande', 'gran', 'granda'], correct: 1, exp: '"Grande" antes de substantivo singular vira "gran".' },
+          { q: 'Como fica o plural de "azul" e "feliz"?', opts: ['azuls / felizs', 'azules / felices', 'azules / felizes'], correct: 1, exp: 'Terminados em consoante ganham -es; o "z" vira "c": "felices".' },
+          { q: 'Qual frase está correta?', opts: ['Tengo un mal presentimiento.', 'Tengo un malo presentimiento.', 'Tengo una mal idea.'], correct: 0, exp: '"Malo" antes de masc. singular encurta para "mal".' },
+          { q: 'Complete: "Las flores _____ huelen maravillosamente."', opts: ['rojas', 'rojos', 'roja'], correct: 0, exp: '"Las flores" é feminino plural → "rojas".' }
+        ]
+      },
+      {
+        title: '8. Preposições (En, De, Con, Por, Para, A)',
+        rule: `<p><strong>Diferenças importantes para brasileiros:</strong></p>
+               <ul class="list-disc pl-5 mt-1 space-y-1">
+                 <li>Meios de transporte usam <code>en</code>: <em>en coche, en avión, en metro</em> (mas: <em>a pie, a caballo</em>).</li>
+                 <li>Não existem contrações como "no/na/num" em espanhol! Dizemos <code>en el, en la, en un</code>. As únicas duas contrações do idioma são <code>al</code> (a + el) e <code>del</code> (de + el).</li>
+               </ul>`,
+        examples: [
+          { es: 'Vamos al trabajo en metro todos los días.', pt: 'Vamos ao trabalho de metrô todos os dias.' },
+          { es: 'El libro está en la mochila de Pedro.', pt: 'O livro está na mochila do Pedro.' },
+          { es: 'Venimos del aeropuerto hace diez minutos.', pt: 'Viemos do aeroporto há dez minutos.' }
+        ],
+        quizzes: [
+          { q: 'Como se diz "Vou de avião" em espanhol?', opts: ['Voy de avión', 'Voy en avión', 'Voy por avión'], correct: 1, exp: 'Meios de transporte usam "en": "en avión, en coche, en tren".' },
+          { q: 'Quais são as ÚNICAS duas contrações obrigatórias em espanhol?', opts: ['no / na', 'al / del', 'nel / dela'], correct: 1, exp: 'Apenas "al" (a+el) e "del" (de+el) existem em espanhol.' },
+          { q: 'Complete: "Fui _____ pie hasta la estación."', opts: ['en', 'a', 'de'], correct: 1, exp: 'Exceção clássica: "ir a pie" (ir a pé).' },
+          { q: 'Complete: "El gato duerme _____ el sofá."', opts: ['nel', 'en el', 'al'], correct: 1, exp: 'Não existe "nel" em espanhol; usa-se separado "en el".' },
+          { q: 'Complete: "Salimos _____ cine a las diez."', opts: ['de el', 'del', 'al'], correct: 1, exp: 'Contração obrigatória de + el = "del".' }
+        ]
+      },
+      {
+        title: '9. Perguntas (Qué, Cuándo, Dónde, Cómo, Cuál)',
+        rule: `<p><strong>Acento Diacrítico:</strong> Todos os pronomes interrogativos e exclamativos levam acento gráfico (<em>¿Qué?, ¿Quién?, ¿Cuándo?, ¿Dónde?, ¿Cómo?, ¿Cuál?, ¿Cuánto?</em>).</p>
+               <p class="mt-2"><strong>Qué vs. Cuál:</strong> <code>¿Qué?</code> pede definição ou vem antes de substantivo (<em>¿Qué libro lees?</em>). <code>¿Cuál?</code> pede seleção dentro de um grupo (<em>¿Cuál es tu teléfono?</em>).</p>`,
+        examples: [
+          { es: '¿Cuál es tu dirección de correo electrónico?', pt: 'Qual é o seu endereço de e-mail?' },
+          { es: '¿Cuánto tiempo llevas estudiando español?', pt: 'Há quanto tempo você estuda espanhol?' },
+          { es: '¿De dónde eres y dónde vives ahora?', pt: 'De onde você é e onde mora agora?' }
+        ],
+        quizzes: [
+          { q: 'Complete: "_____ es tu color favorito?"', opts: ['¿Qué', '¿Cuál', '¿Cómo'], correct: 1, exp: 'Antes do verbo "ser" para pedir identificação/escolha usa-se "¿Cuál?".' },
+          { q: 'Complete: "_____ cuesta esta camisa?"', opts: ['¿Cuál', '¿Cuánto', '¿Qué'], correct: 1, exp: 'Para perguntar preço/quantidade usa-se "¿Cuánto?".' },
+          { q: 'Qual palavra está escrita corretamente numa pergunta?', opts: ['¿Cuando vienes?', '¿Cuándo vienes?', 'Cuando vienes?'], correct: 1, exp: 'Interrogativos sempre levam acento e ponto de interrogação invertido.' },
+          { q: 'Complete: "_____ hora es?"', opts: ['¿Cuál', '¿Qué', '¿Cuándo'], correct: 1, exp: 'Antes de substantivo ("hora") usa-se "¿Qué hora es?".' },
+          { q: 'Complete: "¿_____ personas vienen a la cena?"', opts: ['Cuántas', 'Cuáles', 'Qué'], correct: 0, exp: '"Personas" é feminino plural → "¿Cuántas personas?".' }
+        ]
+      },
+      {
+        title: '10. Conectivos (Pero, Sino, Porque, Aunque, Entonces)',
+        rule: `<p><strong>Pero vs. Sino:</strong> <code>Pero</code> adiciona uma restrição (<em>Es caro, pero me gusta</em>). <code>Sino</code> corrige uma negação anterior (<em>No es azul, sino verde</em>).</p>
+               <p class="mt-2"><strong>Outros essenciais:</strong> <code>Aunque</code> (embora/mesmo que), <code>Entonces</code> (então), <code>Además</code> (além disso), <code>Por lo tanto</code> (portanto).</p>`,
+        examples: [
+          { es: 'No quiero té, sino un café solo bien cargado.', pt: 'Não quero chá, mas sim um café preto bem forte.' },
+          { es: 'Salimos a caminar aunque hacía bastante frío.', pt: 'Saímos para caminhar embora estivesse bastante frio.' },
+          { es: 'Estudió mucho; por lo tanto, aprobó sin problemas.', pt: 'Estudou muito; portanto, passou sem problemas.' }
+        ],
+        quizzes: [
+          { q: 'Complete: "No vivo en Madrid, _____ en Barcelona."', opts: ['pero', 'sino', 'aunque'], correct: 1, exp: 'Após negação para substituir/corrigir a ideia usa-se "sino".' },
+          { q: 'O que significa o conectivo "Aunque"?', opts: ['Portanto', 'Embora / Mesmo que', 'Além disso'], correct: 1, exp: '"Aunque" significa embora / ainda que / mesmo que.' },
+          { q: 'Complete: "Quiero ir, _____ no tengo tiempo hoy."', opts: ['sino', 'pero', 'porque'], correct: 1, exp: 'Ideia afirmativa + oposição simples usa "pero".' },
+          { q: 'O que significa "Además"?', opts: ['Além disso', 'Apenas', 'Antes'], correct: 0, exp: '"Además" significa além disso / ademais.' },
+          { q: 'Complete: "Llovía mucho, _____ decidimos quedarnos en casa."', opts: ['entonces', 'sino', 'aunque'], correct: 0, exp: '"Entonces" indica consequência: então.' }
+        ]
+      }
+    ];
+
+    /* BANCO DE 35 VERBOS IRREGULARES E DE ALTA FREQUÊNCIA */
+    const VERB_DATABASE = {
+      hablar: { m: 'Falar', t: 'Regular (-AR)', ex: 'Nosotros hablamos español todos los días.', pres: ['hablo','hablas','habla','hablamos','habláis','hablan'], indef: ['hablé','hablaste','habló','hablamos','hablasteis','hablaron'], imp: ['hablaba','hablabas','hablaba','hablábamos','hablabais','hablaban'], fut: ['hablaré','hablarás','hablará','hablaremos','hablaréis','hablarán'] },
+      ser: { m: 'Ser', t: 'Irregular', ex: 'Ellos son de Colombia y son muy amables.', pres: ['soy','eres','es','somos','sois','son'], indef: ['fui','fuiste','fue','fuimos','fuisteis','fueron'], imp: ['era','eras','era','éramos','erais','eran'], fut: ['seré','serás','será','seremos','seréis','serán'] },
+      estar: { m: 'Estar', t: 'Irregular', ex: 'Estamos muy contentos de verte aquí.', pres: ['estoy','estás','está','estamos','estáis','están'], indef: ['estuve','estuviste','estuvo','estuvimos','estuvisteis','estuvieron'], imp: ['estaba','estabas','estaba','estábamos','estabais','estaban'], fut: ['estaré','estarás','estará','estaremos','estaréis','estarán'] },
+      tener: { m: 'Ter', t: 'Irregular', ex: 'Tengo dos hermanos y tenemos un perro.', pres: ['tengo','tienes','tiene','tenemos','tenéis','tienen'], indef: ['tuve','tuviste','tuvo','tuvimos','tuvisteis','tuvieron'], imp: ['tenía','tenías','tenía','teníamos','teníais','tenían'], fut: ['tendré','tendrás','tendrá','tendremos','tendréis','tendrán'] },
+      hacer: { m: 'Fazer', t: 'Irregular', ex: '¿Qué haces este fin de semana?', pres: ['hago','haces','hace','hacemos','hacéis','hacen'], indef: ['hice','hiciste','hizo','hicimos','hicisteis','hicieron'], imp: ['hacía','hacías','hacía','hacíamos','hacíais','hacían'], fut: ['haré','harás','hará','haremos','haréis','harán'] },
+      ir: { m: 'Ir', t: 'Irregular', ex: 'Mañana vamos al teatro con nuestros amigos.', pres: ['voy','vas','va','vamos','vais','van'], indef: ['fui','fuiste','fue','fuimos','fuisteis','fueron'], imp: ['iba','ibas','iba','íbamos','ibais','iban'], fut: ['iré','irás','irá','iremos','iréis','irán'] },
+      poder: { m: 'Poder', t: 'Irregular (o→ue)', ex: '¿Puedes ayudarme con estas maletas?', pres: ['puedo','puedes','puede','podemos','podéis','pueden'], indef: ['pude','pudiste','pudo','pudimos','pudisteis','pudieron'], imp: ['podía','podías','podía','podíamos','podíais','podían'], fut: ['podré','podrás','podrá','podremos','podréis','podrán'] },
+      querer: { m: 'Querer', t: 'Irregular (e→ie)', ex: 'Quiero reservar una mesa para cuatro.', pres: ['quiero','quieres','quiere','queremos','queréis','quieren'], indef: ['quise','quisiste','quiso','quisimos','quisisteis','quisieron'], imp: ['quería','querías','quería','queríamos','queríais','querían'], fut: ['querré','querrás','querrá','querremos','querréis','querrán'] },
+      decir: { m: 'Dizer', t: 'Irregular', ex: 'Siempre digo la verdad aunque sea difícil.', pres: ['digo','dices','dice','decimos','decís','dicen'], indef: ['dije','dijiste','dijo','dijimos','dijisteis','dijeron'], imp: ['decía','decías','decía','decíamos','decíais','decían'], fut: ['diré','dirás','dirá','diremos','diréis','dirán'] },
+      venir: { m: 'Vir', t: 'Irregular', ex: '¿Vienes a mi casa esta tarde?', pres: ['vengo','vienes','viene','venimos','venís','vienen'], indef: ['vine','viniste','vino','vinimos','vinisteis','vinieron'], imp: ['venía','venías','venía','veníamos','veníais','venían'], fut: ['vendré','vendrás','vendrá','vendremos','vendréis','vendrán'] },
+      saber: { m: 'Saber', t: 'Irregular', ex: 'Yo sé hablar español e inglés.', pres: ['sé','sabes','sabe','sabemos','sabéis','saben'], indef: ['supe','supiste','supo','supimos','supisteis','supieron'], imp: ['sabía','sabías','sabía','sabíamos','sabíais','sabían'], fut: ['sabré','sabrás','sabrá','sabremos','sabréis','sabrán'] },
+      poner: { m: 'Colocar / Pôr', t: 'Irregular', ex: 'Pongo las llaves encima de la mesa.', pres: ['pongo','pones','pone','ponemos','ponéis','ponen'], indef: ['puse','pusiste','puso','pusimos','pusisteis','pusieron'], imp: ['ponía','ponías','ponía','poníamos','poníais','ponían'], fut: ['pondré','pondrás','pondrá','pondremos','pondréis','pondrán'] },
+      salir: { m: 'Sair', t: 'Irregular', ex: 'Salgo de casa a las ocho en punto.', pres: ['salgo','sales','sale','salimos','salís','salen'], indef: ['salí','saliste','salió','salimos','salisteis','salieron'], imp: ['salía','salías','salía','salíamos','salíais','salían'], fut: ['saldré','saldrás','saldrá','saldremos','saldréis','saldrán'] },
+      traer: { m: 'Trazer', t: 'Irregular', ex: 'Te traigo un recuerdo de mi viaje.', pres: ['traigo','traes','trae','traemos','traéis','traen'], indef: ['traje','trajiste','trajo','trajimos','trajisteis','trajeron'], imp: ['traía','traías','traía','traíamos','traíais','traían'], fut: ['traeré','traerás','traerá','traeremos','traeréis','traerán'] },
+      oir: { m: 'Ouvir', t: 'Irregular', ex: '¿Oyes esa música tan bonita?', pres: ['oigo','oyes','oye','oímos','oís','oyen'], indef: ['oí','oíste','oyó','oímos','oísteis','oyeron'], imp: ['oía','oías','oía','oíamos','oíais','oían'], fut: ['oiré','oirás','oirá','oiremos','oiréis','oirán'] },
+      ver: { m: 'Ver', t: 'Irregular', ex: 'Vemos una película cada viernes.', pres: ['veo','ves','ve','vemos','veis','ven'], indef: ['vi','viste','vio','vimos','visteis','vieron'], imp: ['veía','veías','veía','veíamos','veíais','veían'], fut: ['veré','verás','verá','veremos','veréis','verán'] },
+      dar: { m: 'Dar', t: 'Irregular', ex: 'Te doy mi número de teléfono.', pres: ['doy','das','da','damos','dais','dan'], indef: ['di','diste','dio','dimos','disteis','dieron'], imp: ['daba','dabas','daba','dábamos','dabais','daban'], fut: ['daré','darás','dará','daremos','daréis','darán'] },
+      dormir: { m: 'Dormir', t: 'Irregular (o→ue)', ex: 'Duermo ocho horas todas las noches.', pres: ['duermo','duermes','duerme','dormimos','dormís','duermen'], indef: ['dormí','dormiste','durmió','dormimos','dormisteis','durmieron'], imp: ['dormía','dormías','dormía','dormíamos','dormíais','dormían'], fut: ['dormiré','dormirás','dormirá','dormiremos','dormiréis','dormirán'] },
+      pedir: { m: 'Pedir', t: 'Irregular (e→i)', ex: 'Pido siempre el plato del día.', pres: ['pido','pides','pide','pedimos','pedís','piden'], indef: ['pedí','pediste','pidió','pedimos','pedisteis','pidieron'], imp: ['pedía','pedías','pedía','pedíamos','pedíais','pedían'], fut: ['pediré','pedirás','pedirá','pediremos','pediréis','pedirán'] },
+      sentir: { m: 'Sentir', t: 'Irregular (e→ie)', ex: 'Lo siento mucho, llegué tarde.', pres: ['siento','sientes','siente','sentimos','sentís','sienten'], indef: ['sentí','sentiste','sintió','sentimos','sentisteis','sintieron'], imp: ['sentía','sentías','sentía','sentíamos','sentíais','sentían'], fut: ['sentiré','sentirás','sentirá','sentiremos','sentiréis','sentirán'] },
+      empezar: { m: 'Começar', t: 'Irregular (e→ie)', ex: 'La película empieza a las nueve.', pres: ['empiezo','empiezas','empieza','empezamos','empezáis','empiezan'], indef: ['empecé','empezaste','empezó','empezamos','empezasteis','empezaron'], imp: ['empezaba','empezabas','empezaba','empezábamos','empezabais','empezaban'], fut: ['empezaré','empezarás','empezará','empezaremos','empezaréis','empezarán'] },
+      entender: { m: 'Entender', t: 'Irregular (e→ie)', ex: 'Entiendo perfectamente lo que explicas.', pres: ['entiendo','entiendes','entiende','entendemos','entendéis','entienden'], indef: ['entendí','entendiste','entendió','entendimos','entendisteis','entendieron'], imp: ['entendía','entendías','entendía','entendíamos','entendíais','entendían'], fut: ['entenderé','entenderás','entenderá','entenderemos','entenderéis','entenderán'] },
+      volver: { m: 'Voltar', t: 'Irregular (o→ue)', ex: 'Vuelvo a la oficina después de comer.', pres: ['vuelvo','vuelves','vuelve','volvemos','volvéis','vuelven'], indef: ['volví','volviste','volvió','volvimos','volvisteis','volvieron'], imp: ['volvía','volvías','volvía','volvíamos','volvíais','volvían'], fut: ['volveré','volverás','volverá','volveremos','volveréis','volverán'] },
+      jugar: { m: 'Jogar / Brincar', t: 'Irregular (u→ue)', ex: 'Jugamos al tenis todos los sábados.', pres: ['juego','juegas','juega','jugamos','jugáis','juegan'], indef: ['jugué','jugaste','jugó','jugamos','jugasteis','jugaron'], imp: ['jugaba','jugabas','jugaba','jugábamos','jugabais','jugaban'], fut: ['jugaré','jugarás','jugará','jugaremos','jugaréis','jugarán'] },
+      conocer: { m: 'Conhecer', t: 'Irregular (-zco)', ex: 'Conozco muy bien el centro de Madrid.', pres: ['conozco','conoces','conoce','conocemos','conocéis','conocen'], indef: ['conocí','conociste','conoció','conocimos','conocisteis','conocieron'], imp: ['conocía','conocías','conocía','conocíamos','conocíais','conocían'], fut: ['conoceré','conocerás','conocerá','conoceremos','conoceréis','conocerán'] },
+      conducir: { m: 'Dirigir', t: 'Irregular (-zco / -j)', ex: 'Conduzco con mucho cuidado cuando llueve.', pres: ['conduzco','conduces','conduce','conducimos','conducís','conducen'], indef: ['conduje','condujiste','condujo','condujimos','condujisteis','condujeron'], imp: ['conducía','conducías','conducía','conducíamos','conducíais','conducían'], fut: ['conduciré','conducirás','conducirá','conduciremos','conduciréis','conducirán'] },
+      traducir: { m: 'Traduzir', t: 'Irregular (-zco / -j)', ex: 'Traduzco textos del portugués al español.', pres: ['traduzco','traduces','traduce','traducimos','traducís','traducen'], indef: ['traduje','tradujiste','tradujo','tradujimos','tradujisteis','tradujeron'], imp: ['traducía','traducías','traducía','traducíamos','traducíais','traducían'], fut: ['traduciré','traducirás','traducirá','traduciremos','traduciréis','traducirán'] },
+      pensar: { m: 'Pensar', t: 'Irregular (e→ie)', ex: 'Pienso viajar a Argentina el próximo año.', pres: ['pienso','piensas','piensa','pensamos','pensáis','piensan'], indef: ['pensé','pensaste','pensó','pensamos','pensasteis','pensaron'], imp: ['pensaba','pensabas','pensaba','pensábamos','pensabais','pensaban'], fut: ['pensaré','pensarás','pensará','pensaremos','pensaréis','pensarán'] },
+      cerrar: { m: 'Fechar', t: 'Irregular (e→ie)', ex: 'La tienda cierra a las nueve de la noche.', pres: ['cierro','cierras','cierra','cerramos','cerráis','cierran'], indef: ['cerré','cerraste','cerró','cerramos','cerrasteis','cerraron'], imp: ['cerraba','cerrabas','cerraba','cerrábamos','cerrabais','cerraban'], fut: ['cerraré','cerrarás','cerrará','cerraremos','cerraréis','cerrarán'] },
+      encontrar: { m: 'Encontrar', t: 'Irregular (o→ue)', ex: 'No encuentro mis gafas por ninguna parte.', pres: ['encuentro','encuentras','encuentra','encontramos','encontráis','encuentran'], indef: ['encontré','encontraste','encontró','encontramos','encontrasteis','encontraron'], imp: ['encontraba','encontrabas','encontraba','encontrábamos','encontrabais','encontraban'], fut: ['encontraré','encontrarás','encontrará','encontraremos','encontraréis','encontrarán'] },
+      recordar: { m: 'Lembrar', t: 'Irregular (o→ue)', ex: 'Recuerdo perfectamente aquel verano.', pres: ['recuerdo','recuerdas','recuerda','recordamos','recordáis','recuerdan'], indef: ['recordé','recordaste','recordó','recordamos','recordasteis','recordaron'], imp: ['recordaba','recordabas','recordaba','recordábamos','recordabais','recordaban'], fut: ['recordaré','recordarás','recordará','recordaremos','recordaréis','recordarán'] },
+      seguir: { m: 'Seguir / Continuar', t: 'Irregular (e→i)', ex: 'Sigo practicando español cada mañana.', pres: ['sigo','sigues','sigue','seguimos','seguís','siguen'], indef: ['seguí','seguiste','siguió','seguimos','seguisteis','siguieron'], imp: ['seguía','seguías','seguía','seguíamos','seguíais','seguían'], fut: ['seguiré','seguirás','seguirá','seguiremos','seguiréis','seguirán'] },
+      elegir: { m: 'Escolher', t: 'Irregular (e→i)', ex: 'Elijo siempre comida saludable.', pres: ['elijo','eliges','elige','elegimos','elegís','eligen'], indef: ['elegí','elegiste','eligió','elegimos','elegisteis','eligieron'], imp: ['elegía','elegías','elegía','elegíamos','elegíais','elegían'], fut: ['elegiré','elegirás','elegirá','elegiremos','elegiréis','elegirán'] },
+      construir: { m: 'Construir', t: 'Irregular (+y)', ex: 'Construyen un puente nuevo sobre el río.', pres: ['construyo','construyes','construye','construimos','construís','construyen'], indef: ['construí','construiste','construyó','construimos','construisteis','construyeron'], imp: ['construía','construías','construía','construíamos','construíais','construían'], fut: ['construiré','construirás','construirá','construiremos','construiréis','construirán'] },
+      haber: { m: 'Haver (Auxiliar)', t: 'Irregular', ex: 'Hoy he aprendido muchas palabras nuevas.', pres: ['he','has','ha','hemos','habéis','han'], indef: ['hube','hubiste','hubo','hubimos','hubisteis','hubieron'], imp: ['había','habías','había','habíamos','habíais','habían'], fut: ['habré','habrás','habrá','habremos','habréis','habrán'] }
+    };
+
+    /* DADOS DOS 7 JOGOS */
+    const G1_PAIRS = ALL_VOCAB.slice(0, 90).map(v => ({ es: v.word, pt: v.pt }));
+
+    const G2_WORDS = [
+      { word: 'PERRO', hint: 'Cachorro' }, { word: 'VENTANA', hint: 'Janela' }, { word: 'CUCHARA', hint: 'Colher' },
+      { word: 'CUCHILLO', hint: 'Faca' }, { word: 'TENEDOR', hint: 'Garfo' }, { word: 'ESPEJO', hint: 'Espelho' },
+      { word: 'EQUIPAJE', hint: 'Bagagem' }, { word: 'PAÑUELO', hint: 'Lenço' }, { word: 'MARIPOSA', hint: 'Borboleta' },
+      { word: 'MANZANA', hint: 'Maçã / Quarteirão' }, { word: 'NARANJA', hint: 'Laranja' }, { word: 'ALMOHADA', hint: 'Travesseiro' },
+      { word: 'CERVEZA', hint: 'Cerveja' }, { word: 'DESAYUNO', hint: 'Café da manhã' }, { word: 'ALMUERZO', hint: 'Almoço' },
+      { word: 'CARTERA', hint: 'Carteira' }, { word: 'TIENDA', hint: 'Loja' }, { word: 'LLUVIA', hint: 'Chuva' },
+      { word: 'ESTRELLA', hint: 'Estrela' }, { word: 'SONRISA', hint: 'Sorriso' }, { word: 'TRABAJO', hint: 'Trabalho' },
+      { word: 'ESCUELA', hint: 'Escola' }, { word: 'HOSPITAL', hint: 'Hospital' }, { word: 'MONTAÑA', hint: 'Montanha' },
+      { word: 'PUENTE', hint: 'Ponte' }, { word: 'BOSQUE', hint: 'Floresta' }, { word: 'RELOJ', hint: 'Relógio' },
+      { word: 'ZAPATOS', hint: 'Sapatos' }, { word: 'CAMISA', hint: 'Camisa' }, { word: 'PARAGUAS', hint: 'Guarda-chuva' }
+    ];
+
+    const G3_QUESTIONS = [
+      { q: 'O que significa "Embarazada"?', opts: ['Grávida', 'Embaraçada', 'Cansada', 'Assustada'], ans: 0 },
+      { q: 'Como se diz "Copo" em espanhol?', opts: ['Vaso', 'Copa', 'Taza', 'Plato'], ans: 0 },
+      { q: 'Tradução de "Apellido":', opts: ['Sobrenome', 'Apelido', 'Nome do meio', 'Assinatura'], ans: 0 },
+      { q: 'O que significa "Exquisito"?', opts: ['Delicioso', 'Estranho', 'Caro', 'Azedo'], ans: 0 },
+      { q: 'Como se diz "Escritório"?', opts: ['Oficina', 'Escritorio', 'Taller', 'Despacho'], ans: 0 },
+      { q: 'Tradução de "Aceite":', opts: ['Azeite / Óleo', 'Aceitar', 'Vinagre', 'Acordo'], ans: 0 },
+      { q: 'O que significa "Rato" em espanhol?', opts: ['Um momento / tempinho', 'Camundongo', 'Rápido', 'Resto'], ans: 0 },
+      { q: 'Como se diz "Morango" na Espanha?', opts: ['Fresa', 'Frutilla', 'Morango', 'Cereza'], ans: 0 },
+      { q: 'Qual é o artigo correto para "puente"?', opts: ['El puente', 'La puente', 'Lo puente', 'Las puente'], ans: 0 },
+      { q: 'Complete: "Yo _____ 25 años."', opts: ['tengo', 'soy', 'estoy', 'hago'], ans: 0 },
+      { q: 'Tradução de "Cuchara":', opts: ['Colher', 'Faca', 'Garfo', 'Concha'], ans: 0 },
+      { q: 'O que significa "Largo"?', opts: ['Comprido', 'Largo / Amplo', 'Pesado', 'Curto'], ans: 0 },
+      { q: 'Como se diz "Janela"?', opts: ['Ventana', 'Puerta', 'Techo', 'Pared'], ans: 0 },
+      { q: 'O que significa "Salsa"?', opts: ['Molho / Dança', 'Salsicha', 'Salada', 'Salsinha'], ans: 0 },
+      { q: 'Tradução de "Polvo":', opts: ['Poeira / Pó', 'Polvo (animal)', 'Povo', 'Polvilho'], ans: 0 },
+      { q: 'Complete: "Hoy hace _____ calor."', opts: ['mucho', 'muy', 'mucha', 'muchos'], ans: 0 },
+      { q: 'Como se diz "Cachorro" em espanhol?', opts: ['Perro', 'Cachorro', 'Gato', 'Pájaro'], ans: 0 },
+      { q: 'O que significa "Taller"?', opts: ['Oficina mecânica / Ateliê', 'Talher', 'Tamanho', 'Tarefa'], ans: 0 },
+      { q: 'Tradução de "Escoba":', opts: ['Vassoura', 'Escova de dente', 'Pente', 'Rodo'], ans: 0 },
+      { q: 'Complete: "La comida está _____ rica."', opts: ['muy', 'mucho', 'mucha', 'muchos'], ans: 0 }
+    ];
+
+    const G4_WORD_BANK = [
+      'PERRO','GATO','LIBRO','MESA','SILLA','AGUA','LECHE','PAN','QUESO','VINO',
+      'COCHE','TREN','AVION','PLAYA','SOL','LUNA','NUBE','LLUVIA','VIENTO','FUEGO',
+      'CASA','PUERTA','LLAVE','CAMA','RELOJ','TIENDA','DINERO','CARTA','AMIGO','VIAJE'
+    ];
+
+    const G5_SENTENCES = [
+      { pt: 'Eu quero um café com leite.', es: 'Yo quiero un café con leche.' },
+      { pt: 'Onde fica a estação de metrô?', es: '¿Dónde está la estación de metro?' },
+      { pt: 'Hoje faz muito calor na cidade.', es: 'Hoy hace mucho calor en la ciudad.' },
+      { pt: 'Minha irmã está grávida de seis meses.', es: 'Mi hermana está embarazada de seis meses.' },
+      { pt: 'Você pode me trazer a conta, por favor?', es: '¿Me puedes traer la cuenta, por favor?' },
+      { pt: 'Eu estudo espanhol todos os dias.', es: 'Yo estudio español todos los días.' },
+      { pt: 'Ontem fomos ao cinema com nossos amigos.', es: 'Ayer fuimos al cine con nuestros amigos.' },
+      { pt: 'O museu fica ao lado da praça.', es: 'El museo está al lado de la plaza.' },
+      { pt: 'Não tenho muito dinheiro comigo hoje.', es: 'No tengo mucho dinero encima hoy.' },
+      { pt: 'A que horas sai o próximo trem?', es: '¿A qué hora sale el próximo tren?' },
+      { pt: 'Gosto muito da comida espanhola.', es: 'Me gusta mucho la comida española.' },
+      { pt: 'Por favor, fale um pouco mais devagar.', es: 'Por favor, habla un poco más despacio.' },
+      { pt: 'Amanhã vamos viajar para Madri.', es: 'Mañana vamos a viajar a Madrid.' },
+      { pt: 'Esqueci minhas chaves dentro de casa.', es: 'Olvidé mis llaves dentro de la casa.' },
+      { pt: 'Este livro é muito interessante.', es: 'Este libro es muy interesante.' },
+      { pt: 'Preciso de um copo de água fria.', es: 'Necesito un vaso de agua fría.' },
+      { pt: 'Quanto custa esta jaqueta de couro?', es: '¿Cuánto cuesta esta chaqueta de cuero?' },
+      { pt: 'Cheguei cedo ao escritório hoje.', es: 'Llegué temprano a la oficina hoy.' },
+      { pt: 'Sinto muita saudade da minha família.', es: 'Echo mucho de menos a mi familia.' },
+      { pt: 'Qual é o seu sobrenome?', es: '¿Cuál es tu apellido?' }
+    ];
+
+    const G6_LISTENING = G5_SENTENCES.map((s, i) => {
+      const others = G5_SENTENCES.filter((_, idx) => idx !== i).sort(() => Math.random() - 0.5).slice(0, 3).map(o => o.pt);
+      return { es: s.es, pt: s.pt, wrong: others };
+    });
+
+    const G7_ERRORS = [
+      { wrong: 'Yo soy hambre.', intent: 'Estou com fome.', opts: ['Tengo hambre.', 'Estoy hambre.', 'Hago hambre.'], correct: 0, exp: 'Fome, sede, sono, frio e calor usam o verbo TENER.' },
+      { wrong: 'Estoy muy cansado porque trabajé muy.', intent: 'Trabalhei muito.', opts: ['...porque trabajé mucho.', '...porque trabajé mucha.', '...porque trabajé muyo.'], correct: 0, exp: 'Com verbos usa-se "mucho", nunca "muy".' },
+      { wrong: 'Voy de avión para España.', intent: 'Vou de avião para a Espanha.', opts: ['Voy en avión a España.', 'Voy por avión en España.', 'Voy con avión a España.'], correct: 0, exp: 'Meios de transporte usam "en" (en avión) e destino usa "a".' },
+      { wrong: 'El libro está nel sofá.', intent: 'O livro está no sofá.', opts: ['El libro está en el sofá.', 'El libro está al sofá.', 'El libro está en lo sofá.'], correct: 0, exp: 'Não existe contração "nel" em espanhol; escreve-se separado: "en el".' },
+      { wrong: 'La puente es muy larga.', intent: 'A ponte é muito comprida.', opts: ['El puente es muy largo.', 'La puente es mucho larga.', 'Lo puente es muy largo.'], correct: 0, exp: '"Puente" é substantivo masculino em espanhol: "El puente".' },
+      { wrong: 'Me gusta el leche caliente.', intent: 'Gosto do leite quente.', opts: ['Me gusta la leche caliente.', 'Me gustan la leche caliente.', 'Me gusto la leche caliente.'], correct: 0, exp: '"Leche" é feminino em espanhol: "la leche".' },
+      { wrong: 'Yo tengo 28 años y soy brasileño, mi apodo es Silva.', intent: 'Meu sobrenome é Silva.', opts: ['...mi apellido es Silva.', '...mi sobrenombre es Silva.', '...mi nombre es Silva.'], correct: 0, exp: '"Apellido" é sobrenome; "apodo" significa apelido.' },
+      { wrong: 'Llevé mi coche al oficina para arreglar el motor.', intent: 'Levei meu carro à oficina mecânica.', opts: ['Llevé mi coche al taller...', 'Llevé mi coche a la oficina...', 'Llevé mi coche en el taller...'], correct: 0, exp: 'Oficina mecânica é "taller"; "oficina" é escritório.' },
+      { wrong: 'Yo no sabo dónde está la llave.', intent: 'Eu não sei onde está a chave.', opts: ['Yo no sé dónde está la llave.', 'Yo no sabio dónde está la llave.', 'Yo no sepo dónde está la llave.'], correct: 0, exp: 'A 1ª pessoa do presente de saber é irregular: "Yo sé".' },
+      { wrong: '¿Qué es tu número de teléfono?', intent: 'Qual é o seu número de telefone?', opts: ['¿Cuál es tu número de teléfono?', '¿Quién es tu número de teléfono?', '¿Cómo es tu número de teléfono?'], correct: 0, exp: 'Antes do verbo "ser" para pedir dados/escolha usa-se "¿Cuál?".' },
+      { wrong: 'No quiero té, pero café.', intent: 'Não quero chá, mas sim café.', opts: ['No quiero té, sino café.', 'No quiero té, aunque café.', 'No quiero té, entonces café.'], correct: 0, exp: 'Para corrigir uma negação anterior usa-se "sino".' },
+      { wrong: 'Ayer he comido paella en Valencia.', intent: 'Ontem comi paella em Valência.', opts: ['Ayer comí paella en Valencia.', 'Ayer comía paella en Valencia.', 'Ayer como paella en Valencia.'], correct: 0, exp: '"Ayer" indica passado concluído → Pretérito Indefinido ("comí").' }
+    ];
+
+    /* 10 CENÁRIOS DE CONVERSAÇÃO */
+    const CONVERSATION_SCENARIOS = [
+      {
+        title: '☕ 1. Cafeteria em Madri', desc: 'Peça seu café da manhã com naturalidade.',
+        steps: [
+          { npcEs: '¡Buenos días! ¿Qué le pongo para desayunar?', npcPt: 'Bom dia! O que eu sirvo para o seu café da manhã?', choices: [
+            { es: 'Buenos días. Quisiera un café con leche y una tostada con tomate, por favor.', pt: 'Bom dia. Gostaria de um café com leite e uma torrada com tomate, por favor.', valid: true },
+            { es: 'Yo soy hambre, dame un vaso grande de café.', pt: 'Frase com erros de portunhol.', valid: false, hint: 'Use "Quisiera..." ou "Me gustaría..." e "taza" para xícara.' }
+          ]},
+          { npcEs: '¡Marchando! ¿Lo quiere para tomar aquí o para llevar?', npcPt: 'Saindo! Vai querer para tomar aqui ou para viagem?', choices: [
+            { es: 'Para tomar aquí, por favor. ¿Tienen wifi?', pt: 'Para tomar aqui, por favor. Vocês têm wi-fi?', valid: true },
+            { es: 'Para traer en la oficina.', pt: 'Inadequado.', valid: false, hint: 'Diga "Para tomar aquí" ou "Para llevar".' }
+          ]},
+          { npcEs: 'Sí, claro, la clave está en la pizarra. Aquí tiene su desayuno. ¡Que aproveche!', npcPt: 'Sim, claro, a senha está no quadro. Aqui está seu café. Bom apetite!', choices: [
+            { es: '¡Muchas gracias! Tiene una pinta deliciosa.', pt: 'Muito obrigado! Está com uma cara deliciosa.', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '✈️ 2. Balcão do Aeroporto', desc: 'Faça o check-in e despache sua mala.',
+        steps: [
+          { npcEs: 'Hola, buenas tardes. ¿Me permite su pasaporte y su reserva, por favor?', npcPt: 'Olá, boa tarde. Me permite seu passaporte e sua reserva, por favor?', choices: [
+            { es: 'Aquí tiene. Viajo a Buenos Aires en el vuelo de las cinco.', pt: 'Aqui está. Viajo para Buenos Aires no voo das cinco.', valid: true },
+            { es: 'Sí, aquí está mi pasaporte. ¿Prefiere ventanilla o pasillo?', pt: 'Você é o passageiro!', valid: false, hint: 'Entregue o passaporte e informe seu destino.' }
+          ]},
+          { npcEs: 'Perfecto. ¿Va a facturar equipaje o solo lleva equipaje de mano?', npcPt: 'Perfeito. Vai despachar bagagem ou só leva bagagem de mão?', choices: [
+            { es: 'Voy a facturar esta maleta y llevo esta mochila conmigo.', pt: 'Vou despachar esta mala e levo esta mochila comigo.', valid: true },
+            { es: 'No tengo equipaje de pie.', pt: 'Expressão incorreta.', valid: false, hint: 'Use "facturar equipaje" ou "equipaje de mano".' }
+          ]},
+          { npcEs: 'Todo listo. Su puerta de embarque es la B14. ¡Buen vuelo!', npcPt: 'Tudo pronto. Seu portão de embarque é o B14. Bom voo!', choices: [
+            { es: 'Muchas gracias por su ayuda, hasta luego.', pt: 'Muito obrigado pela sua ajuda, até logo.', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '🍽️ 3. Restaurante & Conta', desc: 'Peça o prato do dia e pague a conta.',
+        steps: [
+          { npcEs: 'Buenas noches, bienvenidos. ¿Tienen reserva?', npcPt: 'Boa noite, bem-vindos. Vocês têm reserva?', choices: [
+            { es: 'Buenas noches. No tenemos reserva, ¿hay una mesa para dos?', pt: 'Boa noite. Não temos reserva, há uma mesa para dois?', valid: true }
+          ]},
+          { npcEs: 'Sí, pasen por aquí. Hoy recomendamos la paella de mariscos. ¿Qué desean beber?', npcPt: 'Sim, passem por aqui. Hoje recomendamos a paella de frutos do mar. O que desejam beber?', choices: [
+            { es: 'Para mí un vaso de agua sin gas y una copa de vino tinto, por favor.', pt: 'Para mim um copo de água sem gás e uma taça de vinho tinto, por favor.', valid: true },
+            { es: 'Una copa de agua y un vaso de vino.', pt: 'Inverteu copo (vaso) e taça (copa).', valid: false, hint: 'Água se bebe em "vaso" e vinho em "copa".' }
+          ]},
+          { npcEs: 'Enseguida se lo traigo. ¿Les apetece ver la carta de postres después?', npcPt: 'Já já trago. Gostariam de ver o cardápio de sobremesas depois?', choices: [
+            { es: 'Sí, por favor, y luego nos trae la cuenta cuando pueda.', pt: 'Sim, por favor, e depois nos traz a conta quando puder.', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '🏨 4. Check-in no Hotel', desc: 'Confirme sua reserva e horários do hotel.',
+        steps: [
+          { npcEs: 'Bienvenido al Hotel Mirador. ¿A nombre de quién está la reserva?', npcPt: 'Bem-vindo ao Hotel Mirador. Em nome de quem está a reserva?', choices: [
+            { es: 'Está a mi nombre, Carlos Mendes. Reservé una habitación doble por tres noches.', pt: 'Está em meu nome, Carlos Mendes. Reservei um quarto duplo por três noites.', valid: true }
+          ]},
+          { npcEs: 'Aquí la tengo. El desayuno se sirve de siete a diez en la primera planta.', npcPt: 'Aqui está. O café da manhã é servido das sete às dez no primeiro andar.', choices: [
+            { es: 'Genial, ¿el desayuno está incluido en la tarifa?', pt: 'Ótimo, o café da manhã está incluído na diária?', valid: true }
+          ]},
+          { npcEs: 'Sí, está incluido. Aquí tiene la llave de la habitación 305.', npcPt: 'Sim, está incluído. Aqui está a chave do quarto 305.', choices: [
+            { es: 'Muchas gracias. ¿Dónde está el ascensor?', pt: 'Muito obrigado. Onde fica o elevador?', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '💊 5. Na Farmácia', desc: 'Explique um sintoma leve e peça orientação.',
+        steps: [
+          { npcEs: 'Hola, buenos días. ¿En qué puedo ayudarle?', npcPt: 'Olá, bom dia. Em que posso ajudá-lo?', choices: [
+            { es: 'Hola. Tengo dolor de garganta y un poco de resfriado desde ayer.', pt: 'Olá. Estou com dor de garganta e um pouco de resfriado desde ontem.', valid: true }
+          ]},
+          { npcEs: '¿Tiene fiebre o alergia a algún medicamento?', npcPt: 'Tem febre ou alergia a algum medicamento?', choices: [
+            { es: 'No tengo fiebre ni alergias, por suerte.', pt: 'Não tenho febre nem alergias, por sorte.', valid: true }
+          ]},
+          { npcEs: 'Le recomiendo estas pastillas para la garganta, una cada ocho horas.', npcPt: 'Recomendo estas pastilhas para a garganta, uma a cada oito horas.', choices: [
+            { es: 'Perfecto, me las llevo. ¿Cuánto es?', pt: 'Perfeito, vou levá-las. Quanto fica?', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '🗺️ 6. Pedindo Direções', desc: 'Encontre o museu caminhando pelo centro.',
+        steps: [
+          { npcEs: '¡Hola! Dime, ¿buscas algún lugar en especial?', npcPt: 'Oi! Diga, você procura algum lugar em especial?', choices: [
+            { es: 'Disculpa, ¿sabes cómo llegar al Museo del Prado desde aquí?', pt: 'Com licença, sabe como chegar ao Museu do Prado daqui?', valid: true }
+          ]},
+          { npcEs: 'Sí, está muy cerca. Sigue todo recto tres cuadras y gira a la izquierda en el semáforo.', npcPt: 'Sim, é muito perto. Siga reto três quarteirões e vire à esquerda no semáforo.', choices: [
+            { es: '¿Entonces son unos cinco minutos a pie?', pt: 'Então são uns cinco minutos a pé?', valid: true }
+          ]},
+          { npcEs: 'Exacto, lo verás justo enfrente del parque.', npcPt: 'Exato, você o verá bem em frente ao parque.', choices: [
+            { es: '¡Mil gracias por tu ayuda, que tengas buen día!', pt: 'Muito obrigado pela ajuda, tenha um bom dia!', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '🛍️ 7. Loja de Roupas', desc: 'Experimente uma peça e pergunte o tamanho.',
+        steps: [
+          { npcEs: 'Buenas tardes, ¿necesita ayuda con alguna talla?', npcPt: 'Boa tarde, precisa de ajuda com algum tamanho?', choices: [
+            { es: 'Sí, por favor. Me gusta esta chaqueta, ¿la tiene en talla mediana?', pt: 'Sim, por favor. Gostei desta jaqueta, tem no tamanho médio?', valid: true }
+          ]},
+          { npcEs: 'Aquí tiene. Los probadores están al fondo a la derecha.', npcPt: 'Aqui está. Os provadores ficam no fundo à direita.', choices: [
+            { es: 'Gracias, voy a probármela un momento.', pt: 'Obrigado, vou experimentá-la um momento.', valid: true }
+          ]},
+          { npcEs: '¿Qué tal le queda?', npcPt: 'Como ficou?', choices: [
+            { es: 'Me queda perfecta, me la llevo. ¿Puedo pagar con tarjeta?', pt: 'Ficou perfeita, vou levar. Posso pagar com cartão?', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '🚕 8. Pegando um Táxi', desc: 'Combine o trajeto até a estação de trem.',
+        steps: [
+          { npcEs: '¡Buenas! ¿Adónde vamos hoy?', npcPt: 'Olá! Para onde vamos hoje?', choices: [
+            { es: 'Buenas tardes. A la estación central de trenes, por favor.', pt: 'Boa tarde. Para a estação central de trens, por favor.', valid: true }
+          ]},
+          { npcEs: 'Muy bien. ¿Tiene prisa? Hay un poco de tráfico en la avenida.', npcPt: 'Muito bem. Está com pressa? Há um pouco de trânsito na avenida.', choices: [
+            { es: 'Mi tren sale en cuarenta minutos, así que vamos bien de tiempo.', pt: 'Meu trem sai em quarenta minutos, então estamos bem de tempo.', valid: true }
+          ]},
+          { npcEs: 'Ya llegamos a la puerta principal. Son doce euros con cincuenta.', npcPt: 'Já chegamos à porta principal. São doze euros e cinquenta.', choices: [
+            { es: 'Aquí tiene quince, quédese con el cambio. ¡Gracias!', pt: 'Aqui tem quinze, fique com o troco. Obrigado!', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '💼 9. Reunião de Trabalho', desc: 'Apresente-se e alinhe o prazo de um projeto.',
+        steps: [
+          { npcEs: 'Hola a todos, gracias por conectarse a la reunión. ¿Cómo va el proyecto?', npcPt: 'Olá a todos, obrigado por se conectarem à reunião. Como vai o projeto?', choices: [
+            { es: 'Hola. Todo avanza según lo previsto, ya envié la carpeta con los informes.', pt: 'Olá. Tudo avança conforme o previsto, já enviei a pasta com os relatórios.', valid: true }
+          ]},
+          { npcEs: 'Excelente. ¿Crees que tendremos el presupuesto aprobado para el viernes?', npcPt: 'Excelente. Acha que teremos o orçamento aprovado até sexta-feira?', choices: [
+            { es: 'Sí, por supuesto. Hoy mismo termino los últimos detalles.', pt: 'Sim, com certeza. Hoje mesmo termino os últimos detalhes.', valid: true }
+          ]},
+          { npcEs: 'Perfecto, quedamos entonces en contacto por correo.', npcPt: 'Perfeito, ficamos então em contato por e-mail.', choices: [
+            { es: 'De acuerdo, muchas gracias y buen resto de semana.', pt: 'Combinado, muito obrigado e bom resto de semana.', valid: true }
+          ]}
+        ]
+      },
+      {
+        title: '🩺 10. Consultório Médico', desc: 'Agende e explique uma consulta de rotina.',
+        steps: [
+          { npcEs: 'Buenos días, Clínica San Lucas. ¿En qué puedo ayudarle?', npcPt: 'Bom dia, Clínica São Lucas. Em que posso ajudá-lo?', choices: [
+            { es: 'Buenos días. Quisiera pedir una cita médica para un chequeo general.', pt: 'Bom dia. Gostaria de marcar uma consulta médica para um check-up geral.', valid: true }
+          ]},
+          { npcEs: 'Tenemos disponibilidad el jueves a las diez de la mañana. ¿Le viene bien?', npcPt: 'Temos disponibilidade na quinta-feira às dez da manhã. Fica bom para você?', choices: [
+            { es: 'Sí, me viene perfecto el jueves a las diez.', pt: 'Sim, fica perfeito para mim quinta-feira às dez.', valid: true }
+          ]},
+          { npcEs: 'Anotado. Recuerde traer su documento de identidad.', npcPt: 'Anotado. Lembre-se de trazer seu documento de identidade.', choices: [
+            { es: 'Así lo haré, muchas gracias por la atención.', pt: 'Assim o farei, muito obrigado pelo atendimento.', valid: true }
+          ]}
+        ]
+      }
+    ];
+
+    /* PRONÚNCIA */
+    const PHONETICS_GUIDE = [
+      { letter: 'Ñ / ñ', sound: 'Som de NH', example: 'España, mañana, niño', tip: 'Pronuncia-se exatamente como o "nh" do português em "banho".' },
+      { letter: 'J / Ge / Gi', sound: 'Som gutural forte (RR)', example: 'Jugar, gente, girar', tip: 'Som forte na garganta, parecido com o "r" inicial de "rato" no português.' },
+      { letter: 'LL / Y', sound: 'Yeísmo (I / DJ / X)', example: 'Calle, lluvia, yo', tip: 'Na maior parte do mundo hispânico soa como "i/dj"; na Argentina/Uruguai soa como "ch/x" (caxe, xuvia).' },
+      { letter: 'R / RR', sound: 'Vibrante múltipla', example: 'Perro, rápido, carro', tip: 'A ponta da língua vibra no céu da boca (nunca na garganta como no português!).' },
+      { letter: 'Z / Ce / Ci', sound: 'S ou TH (Espanha)', example: 'Zapato, cerveza, cinco', tip: 'Na América Latina tem som de "S" (sapato); na Espanha soa como o "th" inglês de "think".' },
+      { letter: 'B / V', sound: 'Som idêntico bilabial', example: 'Vaca, barco, vivir', tip: 'Em espanhol B e V têm exatamente o mesmo som suave de B com os dois lábios.' }
+    ];
+
+    const PRONUNCIATION_PHRASES = [
+      { es: 'El perro de San Roque no tiene rabo porque Ramón Ramírez se lo ha cortado.', pt: 'Trava-língua clássico para treinar o R vibrante.' },
+      { es: 'Tres tristes tigres tragaban trigo en un trigal.', pt: 'Trava-língua para treinar encontros consonantais TR.' },
+      { es: 'Mañana por la mañana viajaré a España con mi familia.', pt: 'Frase cotidiana com Ñ e J.' },
+      { es: 'Quisiera reservar una habitación doble con desayuno incluido.', pt: 'Frase prática de viagem.' },
+      { es: 'Me gustaría un vaso de agua fría y una taza de café caliente.', pt: 'Treino de vogais abertas e claras.' }
+    ];
+
+    /* 65+ FALSOS AMIGOS */
+    const FALSE_FRIENDS_DICT = [
+      { es: 'Embarazada', pt: 'Grávida', looks: 'Embaraçada', exEs: 'Mi hermana está embarazada de siete meses.', exPt: 'Minha irmã está grávida de sete meses.' },
+      { es: 'Exquisito', pt: 'Delicioso / Refinado', looks: 'Esquisito', exEs: 'Este pastel de chocolate está exquisito.', exPt: 'Este bolo de chocolate está delicioso.' },
+      { es: 'Apellido', pt: 'Sobrenome', looks: 'Apelido', exEs: '¿Cómo se escribe tu primer apellido?', exPt: 'Como se escreve seu primeiro sobrenome?' },
+      { es: 'Oficina', pt: 'Escritório', looks: 'Oficina mecânica', exEs: 'Trabajo en una oficina en el centro.', exPt: 'Trabalho em um escritório no centro.' },
+      { es: 'Taller', pt: 'Oficina mecânica / Ateliê', looks: 'Talher', exEs: 'Llevé el coche al taller para revisar los frenos.', exPt: 'Levei o carro à oficina para revisar os freios.' },
+      { es: 'Vaso', pt: 'Copo', looks: 'Vaso de planta', exEs: '¿Me das un vaso de agua, por favor?', exPt: 'Você me dá um copo de água, por favor?' },
+      { es: 'Copa', pt: 'Taça (de vinho/troféu)', looks: 'Copo comum', exEs: 'Brindamos con una copa de vino tinto.', exPt: 'Brindamos com uma taça de vinho tinto.' },
+      { es: 'Aceite', pt: 'Azeite / Óleo', looks: 'Aceite (aceitar)', exEs: 'Cocinamos siempre con aceite de oliva.', exPt: 'Cozinhamos sempre com azeite de oliva.' },
+      { es: 'Largo', pt: 'Comprido / Longo', looks: 'Largo (espaço amplo)', exEs: 'Tiene el pelo muy largo y negro.', exPt: 'Ela tem o cabelo muito comprido e preto.' },
+      { es: 'Ancho', pt: 'Largo (largura)', looks: 'Anjo', exEs: 'Esta avenida es muy ancha y arbolada.', exPt: 'Esta avenida é muito larga e arborizada.' },
+      { es: 'Rato', pt: 'Um momento / tempinho', looks: 'Rato (animal)', exEs: 'Espérame un rato, ya vuelvo.', exPt: 'Espere um tempinho, já volto.' },
+      { es: 'Ratón', pt: 'Rato / Mouse', looks: 'Ratão', exEs: 'El gato persigue al ratón por el jardín.', exPt: 'O gato persegue o rato pelo jardim.' },
+      { es: 'Polvo', pt: 'Poeira / Pó', looks: 'Polvo (molusco)', exEs: 'Hay mucho polvo encima de los muebles.', exPt: 'Há muita poeira em cima dos móveis.' },
+      { es: 'Pulpo', pt: 'Polvo (animal)', looks: 'Polpa', exEs: 'Comimos pulpo a la gallega en Vigo.', exPt: 'Comemos polvo à galega em Vigo.' },
+      { es: 'Salsa', pt: 'Molho (de comida)', looks: 'Salsinha / Salsicha', exEs: 'La pasta lleva una salsa de tomate casera.', exPt: 'A massa leva um molho de tomate caseiro.' },
+      { es: 'Perejil', pt: 'Salsinha', looks: 'Perigo', exEs: 'Pon un poco de perejil picado por encima.', exPt: 'Coloque um pouco de salsinha picada por cima.' },
+      { es: 'Salchicha', pt: 'Salsicha', looks: 'Salsa', exEs: 'Prepararon perritos calientes con salchichas.', exPt: 'Prepararam cachorros-quentes com salsichas.' },
+      { es: 'Carpeta', pt: 'Pasta (de arquivos)', looks: 'Carpete', exEs: 'Guarda los contratos en la carpeta azul.', exPt: 'Guarde os contratos na pasta azul.' },
+      { es: 'Alfombra', pt: 'Tapete / Carpete', looks: 'Sombra', exEs: 'Compramos una alfombra suave para el salón.', exPt: 'Compramos um tapete macio para a sala.' },
+      { es: 'Escritorio', pt: 'Escrivaninha / Mesa', looks: 'Escritório (sala)', exEs: 'Dejé el portátil encima de mi escritorio.', exPt: 'Deixei o notebook em cima da minha mesa.' },
+      { es: 'Cachorro', pt: 'Filhote (de mamífero)', looks: 'Cachorro adulto', exEs: 'Adoptamos un cachorro de labrador.', exPt: 'Adotamos um filhote de labrador.' },
+      { es: 'Perro', pt: 'Cachorro / Cão', looks: 'Pedra', exEs: 'Nuestro perro ladra cuando suena el timbre.', exPt: 'Nosso cachorro late quando toca a campainha.' },
+      { es: 'Escoba', pt: 'Vassoura', looks: 'Escova', exEs: 'Barrió el suelo de la cocina con la escoba.', exPt: 'Varreu o chão da cozinha com a vassoura.' },
+      { es: 'Cepillo', pt: 'Escova (de dente/cabelo)', looks: 'Cepo', exEs: 'No olvides tu cepillo de dientes.', exPt: 'Não esqueça sua escova de dentes.' },
+      { es: 'Cuchillo', pt: 'Faca', looks: 'Cochilo', exEs: 'Corta el pan con este cuchillo de sierra.', exPt: 'Corte o pão com esta faca de serra.' },
+      { es: 'Tenedor', pt: 'Garfo', looks: 'Treinador', exEs: 'Comemos la ensalada con tenedor.', exPt: 'Comemos a salada com garfo.' },
+      { es: 'Cuchara', pt: 'Colher', looks: 'Coçar', exEs: 'Toma la sopa con la cuchara grande.', exPt: 'Tome a sopa com a colher grande.' },
+      { es: 'Sopa', pt: 'Sopa (caldo)', looks: 'Assoprar', exEs: 'En invierno apetece una sopa caliente.', exPt: 'No inverno dá vontade de uma sopa quente.' },
+      { es: 'Borracha', pt: 'Bêbada', looks: 'Borracha escolar', exEs: 'Volvió borracha de la fiesta.', exPt: 'Voltou bêbada da festa.' },
+      { es: 'Goma de borrar', pt: 'Borracha escolar', looks: 'Goma de mascar', exEs: '¿Me prestas tu goma de borrar?', exPt: 'Me empresta sua borracha?' },
+      { es: 'Chicle', pt: 'Chiclete', looks: 'Chique', exEs: 'No mastiques chicle en clase.', exPt: 'Não masque chiclete na aula.' },
+      { es: 'Pegamento', pt: 'Cola', looks: 'Pagamento', exEs: 'Pegué el papel roto con pegamento.', exPt: 'Colei o papel rasgado com cola.' },
+      { es: 'Pago', pt: 'Pagamento', looks: 'Pago (adjetivo)', exEs: 'El pago se realiza por transferencia.', exPt: 'O pagamento é feito por transferência.' },
+      { es: 'Propina', pt: 'Gorjeta', looks: 'Propina / Suborno', exEs: 'Dejamos diez euros de propina al camarero.', exPt: 'Deixamos dez euros de gorjeta ao garçom.' },
+      { es: 'Soborno', pt: 'Suborno / Propina', looks: 'Suborno', exEs: 'Denunciaron un caso grave de soborno.', exPt: 'Denunciaram um caso grave de suborno.' },
+      { es: 'Rubio', pt: 'Loiro', looks: 'Ruivo', exEs: 'Su hijo tiene el pelo rubio y los ojos azules.', exPt: 'O filho dela tem cabelo loiro e olhos azuis.' },
+      { es: 'Pelirrojo', pt: 'Ruivo', looks: 'Perigoso', exEs: 'Es pelirrojo y tiene muchas pecas.', exPt: 'Ele é ruivo e tem muitas sardas.' },
+      { es: 'Peligroso', pt: 'Perigoso', looks: 'Peludo', exEs: 'Es peligroso nadar cuando hay bandera roja.', exPt: 'É perigoso nadar quando há bandeira vermelha.' },
+      { es: 'Saco', pt: 'Paletó / Casaco', looks: 'Saco plástico', exEs: 'Se puso un saco elegante para la boda.', exPt: 'Colocou um paletó elegante para o casamento.' },
+      { es: 'Bolsa', pt: 'Sacola (de supermercado)', looks: 'Bolsa feminina', exEs: 'Llevo las compras en una bolsa reutilizable.', exPt: 'Levo as compras em uma sacola reutilizável.' },
+      { es: 'Bolso', pt: 'Bolsa feminina', looks: 'Bolso da calça', exEs: 'Guardó las llaves dentro de su bolso.', exPt: 'Guardou as chaves dentro da bolsa dela.' },
+      { es: 'Bolsillo', pt: 'Bolso (da calça/camisa)', looks: 'Bolsinha', exEs: 'Tengo monedas en el bolsillo del pantalón.', exPt: 'Tenho moedas no bolso da calça.' },
+      { es: 'Pantalón', pt: 'Calça', looks: 'Pantalona', exEs: 'Me compré un pantalón negro muy elegante.', exPt: 'Comprei uma calça preta muito elegante.' },
+      { es: 'Calcetines', pt: 'Meias', looks: 'Calcinhas', exEs: 'Ponte unos calcetines gruesos en invierno.', exPt: 'Coloque meias grossas no inverno.' },
+      { es: 'Medias', pt: 'Meia-calça', looks: 'Meias comuns', exEs: 'Lleva unas medias negras con el vestido.', exPt: 'Usa uma meia-calça preta com o vestido.' },
+      { es: 'Bragas', pt: 'Calcinha (Espanha)', looks: 'Braga', exEs: 'Compró ropa interior en esa tienda.', exPt: 'Comprou roupa íntima naquela loja.' },
+      { es: 'Cuello', pt: 'Pescoço / Gola', looks: 'Coelho', exEs: 'Me duele el cuello por dormir mal.', exPt: 'Meu pescoço dói por dormir mal.' },
+      { es: 'Conejo', pt: 'Coelho', looks: 'Conselho', exEs: 'El conejo blanco saltaba por el prado.', exPt: 'O coelho branco pulava pelo gramado.' },
+      { es: 'Consejo', pt: 'Conselho', looks: 'Coelho', exEs: 'Gracias por darme tan buen consejo.', exPt: 'Obrigado por me dar um conselho tão bom.' },
+      { es: 'Oso', pt: 'Urso', looks: 'Osso', exEs: 'Vimos un oso pardo en el documental.', exPt: 'Vimos um urso pardo no documentário.' },
+      { es: 'Hueso', pt: 'Osso', looks: 'Grosso', exEs: 'El perro está mordiendo su hueso.', exPt: 'O cachorro está mordendo o osso dele.' },
+      { es: 'Grasa', pt: 'Gordura', looks: 'Graça', exEs: 'Este yogur no tiene nada de grasa.', exPt: 'Este iogurte não tem nada de gordura.' },
+      { es: 'Gracia', pt: 'Graça / Piada', looks: 'Graxas', exEs: 'Ese chiste no tiene ninguna gracia.', exPt: 'Essa piada não tem nenhuma graça.' },
+      { es: 'Escena', pt: 'Cena (de filme/teatro)', looks: 'Acenar', exEs: 'La última escena de la película es emocionante.', exPt: 'A última cena do filme é emocionante.' },
+      { es: 'Cena', pt: 'Jantar', looks: 'Cena de filme', exEs: 'La cena estará lista en diez minutos.', exPt: 'O jantar estará pronto em dez minutos.' },
+      { es: 'Despido', pt: 'Demissão', looks: 'Despido (sem roupa)', exEs: 'Recibió una indemnización tras su despido.', exPt: 'Recebeu uma indenização após sua demissão.' },
+      { es: 'Desnudo', pt: 'Nu / Despido', looks: 'Desnutrido', exEs: 'Es una pintura clásica de un desnudo.', exPt: 'É uma pintura clássica de um nu.' },
+      { es: 'Acordarse', pt: 'Lembrar-se', looks: 'Acordar', exEs: 'No me acuerdo de su número de teléfono.', exPt: 'Não me lembro do número de telefone dele.' },
+      { es: 'Despertarse', pt: 'Acordar', looks: 'Despertar interesse', exEs: 'Me despierto todos los días a las siete.', exPt: 'Acordo todos os dias às sete.' },
+      { es: 'Extrañar', pt: 'Sentir saudade / Achar estranho', looks: 'Estranhar apenas', exEs: 'Te extraño mucho cuando estás de viaje.', exPt: 'Sinto muito sua falta quando você viaja.' },
+      { es: 'Silla', pt: 'Cadeira', looks: 'Sela de cavalo', exEs: 'Siéntate en esta silla cómoda.', exPt: 'Sente-se nesta cadeira confortável.' },
+      { es: 'Balcón', pt: 'Sacada / Varanda', looks: 'Balcão de loja', exEs: 'Tomamos café en el balcón mirando el mar.', exPt: 'Tomamos café na sacada olhando o mar.' },
+      { es: 'Mostrador', pt: 'Balcão (de loja/atendimento)', looks: 'Mostruário', exEs: 'Pague en el mostrador de la entrada.', exPt: 'Pague no balcão da entrada.' },
+      { es: 'Éxito', pt: 'Sucesso', looks: 'Êxito (saída)', exEs: 'La obra de teatro fue un éxito rotundo.', exPt: 'A peça de teatro foi um sucesso absoluto.' },
+      { es: 'Salida', pt: 'Saída', looks: 'Salada', exEs: 'La salida de emergencia está señalizada.', exPt: 'A saída de emergência está sinalizada.' },
+      { es: 'Ensalada', pt: 'Salada', looks: 'Ensaiada', exEs: 'Pedí una ensalada mixta con aguacate.', exPt: 'Pedi uma salada mista com abacate.' }
+    ];
+
     let activeGrammarIdx = 0;
     let activeGrammarStep = 1;
 
